@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Learning App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🌍 Language Learning</h1>
+            <p class="subtitle">AI-Powered Language Practice</p>
+        </header>
+
+        <!-- Login Section -->
+        <div id="login-section" class="section">
+            <h2>Welcome Back</h2>
+            <div class="form-group">
+                <label for="login-username">Username:</label>
+                <input type="text" id="login-username" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" placeholder="Enter your password" onkeypress="handleLoginKeyPress(event)">
+            </div>
+            <button onclick="loginUser()" class="btn btn-primary">Login</button>
+            <p class="text-center">Don't have an account? <a href="#" onclick="showRegister()">Sign up here</a></p>
+        </div>
+
+        <!-- Register Section -->
+        <div id="register-section" class="section hidden">
+            <h2>Create Account</h2>
+            <div class="form-group">
+                <label for="register-username">Username:</label>
+                <input type="text" id="register-username" placeholder="Choose a username (3-30 characters)">
+            </div>
+            <div class="form-group">
+                <label for="register-password">Password:</label>
+                <input type="password" id="register-password" placeholder="Choose a password (min 8 characters)">
+            </div>
+            <div class="form-group">
+                <label for="register-fullname">Full Name (optional):</label>
+                <input type="text" id="register-fullname" placeholder="Enter your full name">
+            </div>
+            <button onclick="registerUser()" class="btn btn-primary">Create Account</button>
+            <p class="text-center">Already have an account? <a href="#" onclick="showLogin()">Login here</a></p>
+        </div>
+
+        <!-- Language Selection Section -->
+        <div id="language-selection-section" class="section hidden">
+            <h2>Choose Your Language</h2>
+            <p class="subtitle">Which language would you like to learn?</p>
+            <div class="language-grid">
+                <div class="language-card" onclick="selectLanguage('Spanish')">
+                    <div class="language-flag">🇪🇸</div>
+                    <h3>Spanish</h3>
+                </div>
+                <div class="language-card" onclick="selectLanguage('French')">
+                    <div class="language-flag">🇫🇷</div>
+                    <h3>French</h3>
+                </div>
+                <div class="language-card" onclick="selectLanguage('German')">
+                    <div class="language-flag">🇩🇪</div>
+                    <h3>German</h3>
+                </div>
+                <div class="language-card" onclick="selectLanguage('Italian')">
+                    <div class="language-flag">🇮🇹</div>
+                    <h3>Italian</h3>
+                </div>
+                <div class="language-card" onclick="selectLanguage('Japanese')">
+                    <div class="language-flag">🇯🇵</div>
+                    <h3>Japanese</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level Selection Section -->
+        <div id="level-selection-section" class="section hidden">
+            <h2>Choose Your Starting Point</h2>
+            <div class="divider">
+                <button onclick="startPlacementTest()" class="btn btn-primary" style="margin-bottom: 20px;">Take Placement Test (Recommended)</button>
+                <div style="text-align: center; margin: 20px 0; color: #666;">OR</div>
+                <p class="subtitle">Select your level manually:</p>
+            </div>
+            <div class="level-grid">
+                <div class="level-card" onclick="selectLevel('A1')">
+                    <h3>A1</h3>
+                    <p>Beginner</p>
+                </div>
+                <div class="level-card" onclick="selectLevel('A2')">
+                    <h3>A2</h3>
+                    <p>Elementary</p>
+                </div>
+                <div class="level-card" onclick="selectLevel('B1')">
+                    <h3>B1</h3>
+                    <p>Intermediate</p>
+                </div>
+                <div class="level-card" onclick="selectLevel('B2')">
+                    <h3>B2</h3>
+                    <p>Upper Intermediate</p>
+                </div>
+                <div class="level-card" onclick="selectLevel('C1')">
+                    <h3>C1</h3>
+                    <p>Advanced</p>
+                </div>
+                <div class="level-card" onclick="selectLevel('C2')">
+                    <h3>C2</h3>
+                    <p>Proficient</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Placement Test Section -->
+        <div id="placement-test-section" class="section hidden">
+            <h2>Placement Test</h2>
+            <div class="test-progress">
+                <div class="progress-bar">
+                    <div id="test-progress-fill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div id="test-progress-text" class="progress-text">Question 0 of 18</div>
+            </div>
+            <div id="test-question-container" class="flashcard">
+                <div class="loading">Loading test...</div>
+            </div>
+            <div id="test-options-container" class="options-container hidden"></div>
+        </div>
+
+        <!-- Test Results Section -->
+        <div id="test-results-section" class="section hidden">
+            <h2>Test Results</h2>
+            <div class="results-card">
+                <div id="level-badge" class="level-badge"></div>
+                <div id="section-scores" class="section-scores"></div>
+                <div id="recommendations" class="recommendations"></div>
+                <button onclick="completeSetup()" class="btn btn-primary" style="margin-top: 20px;">Start Learning</button>
+                <button onclick="retakePlacementTest()" class="btn btn-secondary">Retake Test</button>
+            </div>
+        </div>
+
+        <!-- Module Selection -->
+        <div id="module-section" class="section hidden">
+            <h2>Choose a Module</h2>
+            <div class="module-grid">
+                <div class="module-card" onclick="startVocabulary()">
+                    <div class="module-icon">📚</div>
+                    <h3>Vocabulary</h3>
+                    <p>Learn new words with flashcards</p>
+                </div>
+                <div class="module-card" onclick="startConversation()">
+                    <div class="module-icon">💬</div>
+                    <h3>Conversation</h3>
+                    <p>Chat with AI tutor</p>
+                </div>
+                <div class="module-card" onclick="startGrammar()">
+                    <div class="module-icon">📖</div>
+                    <h3>Grammar</h3>
+                    <p>Practice grammar rules</p>
+                </div>
+                <div class="module-card" onclick="startWriting()">
+                    <div class="module-icon">✍️</div>
+                    <h3>Writing</h3>
+                    <p>Get feedback on your writing</p>
+                </div>
+                <div class="module-card" onclick="startPhonetics()">
+                    <div class="module-icon">🎤</div>
+                    <h3>Pronunciation</h3>
+                    <p>Practice speaking and get AI feedback.</p>
+                </div>
+            </div>
+            <button onclick="window.location.href='progress.html'" class="btn btn-primary">📊 My Progress</button>
+        </div>
+
+        <!-- Vocabulary Flashcard Section -->
+        <div id="vocabulary-section" class="section hidden">
+            <h2>📚 Vocabulary Practice</h2>
+            <div id="flashcard" class="flashcard">
+                <div class="loading">Loading...</div>
+            </div>
+            <div id="options-container" class="options-container hidden"></div>
+            <div id="feedback" class="feedback hidden"></div>
+            <button onclick="backToModules()" class="btn btn-secondary">Back to Modules</button>
+        </div>
+
+        <!-- Conversation Section -->
+        <div id="conversation-section" class="section hidden">
+            <h2>💬 Conversation Practice</h2>
+            <div id="chat-container" class="chat-container">
+                <div class="loading">Starting conversation...</div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleChatKeyPress(event)">
+                <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+            </div>
+            <button onclick="backToModules()" class="btn btn-secondary">Back to Modules</button>
+        </div>
+
+        <!-- Grammar Section -->
+        <div id="grammar-section" class="section hidden">
+            <h2>📖 Grammar Practice</h2>
+            <div id="grammar-question" class="flashcard">
+                <div class="loading">Loading question...</div>
+            </div>
+            <div id="grammar-options" class="options-container hidden"></div>
+            <div id="grammar-feedback" class="feedback hidden"></div>
+            <button onclick="backToModules()" class="btn btn-secondary">Back to Modules</button>
+        </div>
+
+        <!-- Writing Section -->
+        <div id="writing-section" class="section hidden">
+            <h2>✍️ Writing Practice</h2>
+            <div class="form-group">
+                <label for="writing-text">Write a sentence in <span id="writing-language">your target language</span>:</label>
+                <textarea id="writing-text" rows="4" placeholder="Type your sentence here..."></textarea>
+            </div>
+            <button onclick="submitWriting()" class="btn btn-primary">Get Feedback</button>
+            <div id="writing-feedback" class="writing-feedback hidden"></div>
+            <button onclick="backToModules()" class="btn btn-secondary">Back to Modules</button>
+        </div>
+
+        <!-- User Info Display -->
+        <div id="user-info" class="user-info hidden">
+            <span id="user-display"></span>
+            <button onclick="logoutUser()" class="btn btn-secondary" style="margin-left: 10px; padding: 5px 15px; font-size: 0.9rem;">Logout</button>
+        </div>
+
+        <!-- Phonetics Section -->
+        <div id="phonetics-section" class="section hidden">
+            <h2>🎤 Pronunciation Practice</h2>
+
+            <div class="flashcard" style="text-align: center; display: block; padding: 30px 20px;">
+                <p style="color: #666; margin-bottom: 15px; font-size: 0.95rem;">Read this phrase aloud:</p>
+                <div id="target-phrase" style="font-size: 1.6rem; font-weight: bold; color: #2c3e50; line-height: 1.4;">
+                    <div class="loading">Loading phrase...</div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; margin: 30px 0; gap: 15px;">
+
+                <button id="record-btn" onclick="toggleRecording()" class="btn" style="
+                    background-color: #e74c3c;
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    font-size: 2.5rem;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+                    transition: transform 0.1s;
+                    border: none;
+                ">
+                    🎙️
+                </button>
+                <div id="record-status" style="color: #666; font-size: 1rem; font-weight: 500;">Tap microphone to record</div>
+
+                <audio id="audio-preview" controls style="display: none; width: 100%; max-width: 320px; margin-top: 10px;"></audio>
+
+                <button id="validate-btn" onclick="validatePronunciation()" class="btn btn-primary" style="width: 100%; max-width: 320px;" disabled>
+                    Validate Pronunciation
+                </button>
+            </div>
+
+            <div id="phonetics-feedback" class="feedback hidden" style="text-align: left;">
+                <div id="phonetics-main-feedback"></div>
+
+                <div id="phonetics-word-feedback" style="margin-top: 20px;"></div>
+
+                <button onclick="startPhonetics()" class="btn btn-primary" style="margin-top: 25px; width: 100%;">
+                    Next Practice
+                </button>
+            </div>
+
+            <button onclick="backToModules()" class="btn btn-secondary" style="margin-top: 20px;">Back to Modules</button>
+        </div>
+
+    </div>
+
+    <script src="app.js?v=5"></script>
+</body>
+</html>

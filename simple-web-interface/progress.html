@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Progress - Language Learning Platform</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="progress-header">
+            <div class="header-content">
+                <h1>My Learning Progress</h1>
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Current Level</span>
+                        <span id="current-level-badge" class="level-badge">A1</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Time at Level</span>
+                        <span id="time-at-level" class="stat-value">0 days</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Total XP</span>
+                        <span id="total-xp" class="stat-value">0 XP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advancement Banner (conditional) -->
+        <div id="advancement-banner" class="advancement-banner hidden">
+            <div class="banner-content">
+                <div class="banner-icon">🎉</div>
+                <div class="banner-text">
+                    <h2>Congratulations!</h2>
+                    <p>You're ready to advance to <strong id="next-level-text">A2</strong>!</p>
+                </div>
+                <button onclick="triggerLevelAdvancement()" class="btn btn-primary btn-large">
+                    Level Up Now!
+                </button>
+            </div>
+        </div>
+
+        <!-- Overall Progress Section -->
+        <div class="overall-progress-section">
+            <h2>Overall Progress to Next Level</h2>
+            <div class="progress-bar-container">
+                <div id="overall-progress-bar" class="progress-bar" style="width: 0%"></div>
+                <span id="overall-percentage" class="percentage">0%</span>
+            </div>
+            <div id="advancement-status" class="advancement-status">
+                Complete all modules at 85% or higher to advance
+            </div>
+        </div>
+
+        <!-- Module Progress Cards -->
+        <div class="modules-section">
+            <h2>Module Progress</h2>
+            <div class="module-cards-grid">
+                <!-- Vocabulary Card -->
+                <div class="module-card" data-module="vocabulary">
+                    <div class="module-header">
+                        <span class="module-icon">📚</span>
+                        <h3>Vocabulary</h3>
+                        <span class="status-badge status-pending">Not Ready</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 0%"></div>
+                        <span class="percentage">0%</span>
+                    </div>
+                    <div class="module-stats">
+                        <span class="attempts">0 attempts</span>
+                        <span class="correct">0 correct</span>
+                    </div>
+                    <div class="threshold-status">
+                        <span class="status-message">No activity yet</span>
+                    </div>
+                </div>
+
+                <!-- Grammar Card -->
+                <div class="module-card" data-module="grammar">
+                    <div class="module-header">
+                        <span class="module-icon">📖</span>
+                        <h3>Grammar</h3>
+                        <span class="status-badge status-pending">Not Ready</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 0%"></div>
+                        <span class="percentage">0%</span>
+                    </div>
+                    <div class="module-stats">
+                        <span class="attempts">0 attempts</span>
+                        <span class="correct">0 correct</span>
+                    </div>
+                    <div class="threshold-status">
+                        <span class="status-message">No activity yet</span>
+                    </div>
+                </div>
+
+                <!-- Writing Card -->
+                <div class="module-card" data-module="writing">
+                    <div class="module-header">
+                        <span class="module-icon">✍️</span>
+                        <h3>Writing</h3>
+                        <span class="status-badge status-pending">Not Ready</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 0%"></div>
+                        <span class="percentage">0%</span>
+                    </div>
+                    <div class="module-stats">
+                        <span class="attempts">0 attempts</span>
+                        <span class="score-avg">Avg: 0</span>
+                    </div>
+                    <div class="threshold-status">
+                        <span class="status-message">No activity yet</span>
+                    </div>
+                </div>
+
+                <!-- Phonetics Card -->
+                <div class="module-card" data-module="phonetics">
+                    <div class="module-header">
+                        <span class="module-icon">🎤</span>
+                        <h3>Phonetics</h3>
+                        <span class="status-badge status-pending">Not Ready</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 0%"></div>
+                        <span class="percentage">0%</span>
+                    </div>
+                    <div class="module-stats">
+                        <span class="attempts">0 attempts</span>
+                        <span class="score-avg">Avg: 0</span>
+                    </div>
+                    <div class="threshold-status">
+                        <span class="status-message">No activity yet</span>
+                    </div>
+                </div>
+
+                <!-- Conversation Card -->
+                <div class="module-card" data-module="conversation">
+                    <div class="module-header">
+                        <span class="module-icon">💬</span>
+                        <h3>Conversation</h3>
+                        <span class="status-badge status-pending">Not Ready</span>
+                    </div>
+                    <div class="engagement-info">
+                        <div class="message-count">
+                            <span class="count-value">0</span>
+                            <span class="count-label">messages sent</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: 0%"></div>
+                            <span class="percentage">0/20</span>
+                        </div>
+                    </div>
+                    <div class="threshold-status">
+                        <span class="status-message">Need 20 messages to advance</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level History Section -->
+        <div class="history-section">
+            <h2>Level History</h2>
+            <div id="level-history-container">
+                <div class="empty-state">
+                    <p>No completed levels yet. Keep practicing to advance!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation-buttons">
+            <button onclick="window.location.href='index.html'" class="btn btn-secondary">
+                Back to Dashboard
+            </button>
+            <button onclick="loadProgressDashboard()" class="btn btn-primary">
+                Refresh Progress
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js?v=5"></script>
+    <script>
+        // Load progress when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadProgressDashboard();
+            loadLevelHistory();
+        });
+    </script>
+</body>
+</html>
