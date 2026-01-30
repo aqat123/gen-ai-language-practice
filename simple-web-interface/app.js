@@ -60,6 +60,25 @@ function checkAuth() {
     return true;
 }
 
+// Password Visibility Toggle
+function togglePasswordVisibility(inputId, event) {
+    event.preventDefault();
+    const input = document.getElementById(inputId);
+    const button = event.currentTarget;
+    const eyeIcon = button.querySelector('.eye-icon');
+    const eyeClosedIcon = button.querySelector('.eye-closed-icon');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        eyeIcon.classList.add('hidden');
+        eyeClosedIcon.classList.remove('hidden');
+    } else {
+        input.type = 'password';
+        eyeIcon.classList.remove('hidden');
+        eyeClosedIcon.classList.add('hidden');
+    }
+}
+
 // Initialize app on page load
 async function initializeApp() {
     const token = loadAuthToken();
