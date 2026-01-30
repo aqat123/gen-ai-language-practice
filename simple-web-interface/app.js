@@ -830,6 +830,7 @@ function handleChatKeyPress(event) {
     }
 }
 
+// TODO: add a loading indicator when waiting for AI response
 async function sendMessage() {
     const input = document.getElementById('chat-input');
     const message = input.value.trim();
@@ -976,6 +977,7 @@ async function selectGrammarOption(selectedIndex) {
 }
 
 // Writing Module
+// TODO: add loading indicators, currently you have no idea if something is happening after you click submit
 function startWriting() {
     showSection('writing-section');
     document.getElementById('writing-language').textContent = currentUser.target_language || 'your target language';

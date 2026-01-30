@@ -371,7 +371,7 @@ def advance_user_level(user_id: str, db: Session) -> AdvancementResponse:
         module_scores=module_scores
     )
 
-
+# TODO: currently it does not seem to correctly display the reset progress in the UI
 def reset_progress_for_new_level(user_id: str, db: Session):
     """Reset all module progress scores and attempts to 0."""
     progress_records = db.query(UserProgress).filter(

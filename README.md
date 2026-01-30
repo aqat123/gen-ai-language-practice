@@ -111,6 +111,23 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
+**Windows 11 (Git Bash or WSL):**
+
+```bash
+cd language-app
+chmod +x setup_windows11.sh
+./setup_windows11.sh
+```
+
+**WSL note:** If you see `WSL_E_DEFAULT_DISTRO_NOT_FOUND`, you need to install a distro first.
+
+```powershell
+wsl.exe --list --online
+wsl.exe --install Ubuntu
+```
+
+Alternatively, use **Git Bash** (recommended if you do not want WSL) or follow the manual PowerShell steps in this README.
+
 This script will:
 - Create and activate a Python virtual environment
 - Install all dependencies
@@ -126,18 +143,22 @@ Edit `backend/.env` with your credentials:
 # Database Configuration
 DATABASE_URL=sqlite:///./language_app.db
 
+# LLM (Gemini / AI Studio API key)
+LLM_API_KEY=your-llm-api-key
+
+# STT (Gemini STT API key)
+STT_API_KEY=your-stt-api-key
+
 # JWT Authentication
-SECRET_KEY=your-secret-key-here-generate-with-openssl-rand-hex-32
-ALGORITHM=HS256
+JWT_SECRET_KEY=your-secret-key-here-generate-with-openssl-rand-hex-32
+JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # Google Cloud Vertex AI
-PROJECT_ID=your-google-cloud-project-id
-LOCATION=us-central1
-CREDENTIALS_PATH=./credentials/your-service-account-key.json
-
-# Rate Limiting
-RATE_LIMIT_PER_MINUTE=20
+VERTEX_AI_PROJECT_ID=your-google-cloud-project-id
+VERTEX_AI_LOCATION=us-central1
+VERTEX_AI_CREDENTIALS_PATH=./credentials/your-service-account-key.json
+USE_VERTEX_AI=True
 ```
 
 ### 3. Add Google Cloud Credentials
@@ -146,7 +167,32 @@ RATE_LIMIT_PER_MINUTE=20
 2. Enable Vertex AI API
 3. Download the JSON key file
 4. Place it in `backend/credentials/` directory
-5. Update `CREDENTIALS_PATH` in `.env`
+5. Update `VERTEX_AI_CREDENTIALS_PATH` in `.env`
+
+#### Vertex AI JSON key setup (step-by-step)
+
+**Important:** Google AI Studio API keys are *not* the same as Vertex AI JSON keys.
+This project needs a **service account JSON key** from Google Cloud Console.
+
+1. Go to Google Cloud Console: `https://console.cloud.google.com/`
+2. Select or create a GCP project, then enable **Vertex AI API**.
+3. Go to **IAM & Admin → Service Accounts** and create a service account.
+4. Grant roles:
+   - `Vertex AI User`
+   - `Service Account User`
+5. Open the service account → **Keys** → **Add Key** → **Create new key**.
+6. Choose **JSON** and download the file.
+7. Move it to: `backend/credentials/`
+8. Set the path in `.env`:
+
+```env
+VERTEX_AI_PROJECT_ID=your-google-cloud-project-id
+VERTEX_AI_LOCATION=us-central1
+VERTEX_AI_CREDENTIALS_PATH=./credentials/your-service-account-key.json
+USE_VERTEX_AI=True
+```
+
+**Security note:** never commit JSON keys. Add `backend/credentials/` to `.gitignore`.
 
 ### 4. Start the Server
 

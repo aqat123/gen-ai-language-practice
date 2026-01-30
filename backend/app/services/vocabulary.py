@@ -56,7 +56,7 @@ Visual description:"""
             system_prompt="You create concise visual descriptions for image generation.",
             user_prompt=prompt,
             temperature=0.4,
-            max_tokens=80
+            max_tokens=128
         )
 
         # Clean up response
@@ -111,7 +111,8 @@ async def get_next_flashcard(
         imm_client = get_image_client()
 
     # Find or create user
-    user = db.query(User).filter(User.external_id == user_id).first()
+    # this is what i fixed: was filtering by external_id, so logged-in users were not found
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         user = User(
             external_id=user_id,
@@ -163,7 +164,7 @@ async def get_next_flashcard(
         system_prompt=f"You are a language learning content creator. Always respond with valid JSON only.",
         user_prompt=prompt,
         temperature=0.7,
-        max_tokens=1024
+        max_tokens=4096 # Return JSON can be large
     )
 
     # Parse JSON

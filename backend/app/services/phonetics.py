@@ -97,7 +97,9 @@ async def evaluate_pronunciation(
     stt = get_stt_client()
 
     # Find or create user
-    user = db.query(User).filter(User.external_id == user_id).first()
+
+    # this is what i fixed: was filtering by external_id, so logged-in users were not found
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         user = User(external_id=user_id)
         db.add(user)

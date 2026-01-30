@@ -33,7 +33,7 @@ async def get_grammar_question(
     secondary_validator = get_secondary_validator()
 
     # Find or create user
-    user = db.query(User).filter(User.external_id == user_id).first()
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         user = User(
             external_id=user_id,
@@ -66,7 +66,7 @@ async def get_grammar_question(
     prompt = f"""Generate a multiple-choice grammar question for learning {target_language}{level_info}{topic_info}.
     
     IMPORTANT: Do not suggest any sentence that is too similar to: {exclusions}.
-    Please provide SHORT example sentences (MAX 12 words) that clearly illustrate the grammar point.
+    Please provide SHORT example sentences (MAX 10 words) that clearly illustrate the grammar point.
 
     Respond ONLY with valid JSON in this exact format:
     {{
@@ -81,7 +81,7 @@ async def get_grammar_question(
         system_prompt=f"You are a language learning content creator. Always respond with valid JSON only.",
         user_prompt=prompt,
         temperature=0.7,
-        max_tokens=2048
+        max_tokens=4096 # return JSON can be large
     )
 
     try:
@@ -98,6 +98,8 @@ async def get_grammar_question(
         # Prevent 500 Crash
         print(f"JSON Parse Error: {e}")
         # Return a fallback or re-raise a clean error
+        print("[DEBUG] the json looked like this:")
+        print(cleaned)
         raise ValueError("Failed to generate valid grammar question from AI.")
 
     # Stage 1: Primary checker - format and basic validation
@@ -182,6 +184,7 @@ async def submit_grammar_answer(
     is_correct = request.selected_option_index == request.correct_option_index
 
     # Update user progress
+    # this is what i fixed: was filtering by external_id, so logged-in users were not found
     progress = db.query(UserProgress).filter(
         UserProgress.user_id == user.id,
         UserProgress.module == "grammar"
