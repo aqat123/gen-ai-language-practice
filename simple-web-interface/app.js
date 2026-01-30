@@ -1571,6 +1571,67 @@ async function checkAdvancementEligibility() {
     }
 }
 
+// ============================================
+// CHEAT CODE FOR DEMO
+// ============================================
+
+function toggleCheatCode() {
+    const container = document.getElementById('cheat-code-container');
+    if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+    }
+}
+
+async function applyCheatCode() {
+    const code = document.getElementById('cheat-code-input').value.trim();
+    const feedback = document.getElementById('cheat-code-feedback');
+
+    if (!code) {
+        feedback.style.color = '#e74c3c';
+        feedback.textContent = 'Please enter a code';
+        return;
+    }
+
+    feedback.style.color = '#666';
+    feedback.textContent = 'Applying code...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/progress/cheat-code`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ code: code })
+        });
+
+        if (response.status === 401) {
+            showError('Session expired. Please login again.');
+            logoutUser();
+            return;
+        }
+
+        if (response.ok) {
+            const data = await response.json();
+            feedback.style.color = '#10b981';
+            feedback.textContent = '✅ ' + data.message;
+            document.getElementById('cheat-code-input').value = '';
+
+            // Show celebration after a short delay
+            setTimeout(() => {
+                alert('🎉 Demo mode activated! All progress set to 95%. Check "My Progress" to advance to the next level!');
+            }, 500);
+        } else {
+            const error = await response.json();
+            feedback.style.color = '#e74c3c';
+            feedback.textContent = '❌ ' + (error.detail || 'Invalid code');
+        }
+    } catch (error) {
+        console.error('Error applying cheat code:', error);
+        feedback.style.color = '#e74c3c';
+        feedback.textContent = '❌ Failed to apply code';
+    }
+}
+
 // Initialize app on page load (only on index.html)
 window.addEventListener('DOMContentLoaded', function() {
     // Only run initializeApp on index.html (main page)

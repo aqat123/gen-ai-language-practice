@@ -18,6 +18,7 @@ from app.schemas.progress import (
     AdvancementResponse,
     LevelHistoryItem
 )
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -92,6 +93,104 @@ async def get_history(
         return get_level_history(current_user.id, db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get level history: {str(e)}")
+
+
+class CheatCodeRequest(BaseModel):
+    code: str
+
+
+@router.post("/cheat-code")
+async def apply_cheat_code(
+    request: CheatCodeRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Apply cheat code for demo purposes.
+
+    Code 'fullclip' sets all progress to 100% and meets advancement criteria.
+    """
+    from app.db.models import UserProgress, ConversationSession
+    from datetime import datetime
+
+    if request.code != "fullclip":
+        raise HTTPException(status_code=400, detail="Invalid cheat code")
+
+    try:
+        # Set all module progress to 100%
+        modules = ["vocabulary", "grammar", "writing", "phonetics"]
+
+        for module in modules:
+            progress = db.query(UserProgress).filter(
+                UserProgress.user_id == current_user.id,
+                UserProgress.module == module
+            ).first()
+
+            if not progress:
+                progress = UserProgress(
+                    user_id=current_user.id,
+                    module=module,
+                    total_attempts=15,
+                    correct_attempts=15,
+                    score=95.0,
+                    last_activity_at=datetime.utcnow()
+                )
+                db.add(progress)
+            else:
+                progress.total_attempts = max(progress.total_attempts, 15)
+                progress.correct_attempts = max(progress.correct_attempts, 15)
+                progress.score = 95.0
+                progress.last_activity_at = datetime.utcnow()
+
+        # Add conversation messages if needed
+        sessions = db.query(ConversationSession).filter(
+            ConversationSession.user_id == current_user.id
+        ).all()
+
+        # Count existing user messages
+        existing_messages = 0
+        for session in sessions:
+            context = session.context_json
+            if isinstance(context, dict) and "messages" in context:
+                existing_messages += sum(
+                    1 for msg in context["messages"]
+                    if isinstance(msg, dict) and msg.get("role") == "user"
+                )
+
+        # If less than 25 messages, create a new session with dummy messages
+        if existing_messages < 25:
+            from uuid import uuid4
+            # Create dummy user messages
+            dummy_messages = []
+            for i in range(25):
+                dummy_messages.append({"role": "user", "content": f"Practice message {i+1}"})
+                dummy_messages.append({"role": "assistant", "content": f"Response {i+1}"})
+
+            session = ConversationSession(
+                id=str(uuid4()),
+                user_id=current_user.id,
+                target_language=current_user.target_language or "Spanish",
+                context_json={"messages": dummy_messages},
+                created_at=datetime.utcnow()
+            )
+            db.add(session)
+
+        # Set user as eligible for advancement
+        current_user.can_advance = True
+        current_user.advancement_notified_at = datetime.utcnow()
+
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "Cheat code applied! All modules set to 95% with 15+ attempts. You can now advance to the next level!",
+            "modules_updated": modules,
+            "conversation_messages": 25
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to apply cheat code: {str(e)}")
 
 
 @router.get("/modules/{module}")

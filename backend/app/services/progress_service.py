@@ -371,9 +371,9 @@ def advance_user_level(user_id: str, db: Session) -> AdvancementResponse:
         module_scores=module_scores
     )
 
-# TODO: currently it does not seem to correctly display the reset progress in the UI
 def reset_progress_for_new_level(user_id: str, db: Session):
-    """Reset all module progress scores and attempts to 0."""
+    """Reset all module progress scores and attempts to 0, and clear conversation sessions."""
+    # Reset UserProgress for all modules (vocabulary, grammar, writing, phonetics)
     progress_records = db.query(UserProgress).filter(
         UserProgress.user_id == user_id
     ).all()
@@ -382,6 +382,11 @@ def reset_progress_for_new_level(user_id: str, db: Session):
         progress.score = 0.0
         progress.total_attempts = 0
         progress.correct_attempts = 0
+
+    # Delete all conversation sessions to reset conversation progress
+    db.query(ConversationSession).filter(
+        ConversationSession.user_id == user_id
+    ).delete()
 
 
 def get_level_history(user_id: str, db: Session) -> List[LevelHistoryItem]:

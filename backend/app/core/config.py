@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, Union
+from pydantic import field_validator
+import json
 
 
 class Settings(BaseSettings):
@@ -44,7 +46,20 @@ class Settings(BaseSettings):
     CEFR_LEVELS: list = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
     # CORS
-    BACKEND_CORS_ORIGINS: list = ["*"]
+    BACKEND_CORS_ORIGINS: Union[list, str] = ["*"]
+
+    @field_validator('BACKEND_CORS_ORIGINS', mode='before')
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS origins from environment variable."""
+        if isinstance(v, str):
+            # Handle JSON string format like '["*"]' or '["http://localhost:3000"]'
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                # Handle comma-separated format like "*" or "http://localhost:3000,http://localhost:8080"
+                return [origin.strip() for origin in v.split(',')]
+        return v
 
     class Config:
         env_file = ".env"
