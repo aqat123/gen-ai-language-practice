@@ -249,7 +249,8 @@
                 <label for="writing-text">Write a sentence in <span id="writing-language">your target language</span>:</label>
                 <textarea id="writing-text" rows="4" placeholder="Type your sentence here..."></textarea>
             </div>
-            <button onclick="submitWriting()" class="btn btn-primary">Get Feedback</button>
+            <button onclick="submitWriting()" class="btn btn-primary" id="submit-writing-btn">Get Feedback</button>
+            <div id="writing-loading" class="loading hidden">Processing your feedback</div>
             <div id="writing-feedback" class="writing-feedback hidden"></div>
             <button onclick="backToModules()" class="btn btn-secondary">Back to Modules</button>
         </div>
