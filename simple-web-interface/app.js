@@ -1,6 +1,6 @@
 // API Configuration
-//const API_BASE_URL = 'http://localhost:8000/api/v1'; (for local deployment)
-const API_BASE_URL = 'https://language-app-469l.onrender.com/api/v1';
+const API_BASE_URL = 'http://localhost:8000/api/v1';
+//const API_BASE_URL = 'https://language-app-469l.onrender.com/api/v1';
 
 // Global State
 let authToken = null;
@@ -1677,6 +1677,55 @@ async function applyCheatCode() {
     }
 }
 
+// Mascot Helper Messages
+const mascotMessages = [
+    "Practice daily for best results! 💪",
+    "Don't forget to review your vocabulary! 📚",
+    "Great job learning! Keep it up! ⭐",
+    "Try the conversation module to improve speaking! 💬",
+    "Consistency is key to mastering a language! 🔑",
+    "Challenge yourself with harder exercises! 🚀",
+    "Take breaks when needed, learning should be fun! 😊",
+    "Review your progress regularly! 📊"
+];
+
+let mascotMessageIndex = 0;
+
+// Toggle Mascot Speech Bubble
+function toggleMascotMessage() {
+    const bubble = document.getElementById('mascot-bubble');
+    const messageEl = document.getElementById('mascot-message');
+
+    if (!bubble || !messageEl) return;
+
+    if (bubble.classList.contains('hidden')) {
+        // Show bubble with random message
+        mascotMessageIndex = Math.floor(Math.random() * mascotMessages.length);
+        messageEl.textContent = mascotMessages[mascotMessageIndex];
+        bubble.classList.remove('hidden');
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            bubble.classList.add('hidden');
+        }, 5000);
+    } else {
+        bubble.classList.add('hidden');
+    }
+}
+
+// Initialize mascot helper
+function initMascotHelper() {
+    const mascot = document.getElementById('floating-mascot');
+    if (mascot) {
+        mascot.addEventListener('click', toggleMascotMessage);
+
+        // Show welcome message after 2 seconds
+        setTimeout(() => {
+            toggleMascotMessage();
+        }, 2000);
+    }
+}
+
 // Initialize app on page load (only on index.html)
 window.addEventListener('DOMContentLoaded', function() {
     // Only run initializeApp on index.html (main page)
@@ -1684,5 +1733,6 @@ window.addEventListener('DOMContentLoaded', function() {
     const isMainPage = document.getElementById('login-section') !== null;
     if (isMainPage) {
         initializeApp();
+        initMascotHelper();
     }
 });

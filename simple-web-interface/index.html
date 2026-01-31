@@ -3,15 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Language Learning App</title>
+    <title>Fluently - AI Language Learning</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Floating Mascot Helper -->
+    <div class="floating-mascot" id="floating-mascot">
+        <img src="mascot.png" alt="Fluently Helper" class="floating-mascot-image">
+        <div class="mascot-speech-bubble hidden" id="mascot-bubble">
+            <p id="mascot-message">Hi! I'm here to help! 👋</p>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <header>
-            <h1>🌍 Language Learning</h1>
-            <p class="subtitle">AI-Powered Language Practice</p>
+            <div class="logo-container">
+                <div class="mascot-icon">
+                    <img src="logo.png" alt="Fluently Logo" class="mascot-image">
+                </div>
+                <h1>Fluently</h1>
+            </div>
+            <p class="subtitle">Master Languages with AI-Powered Guidance</p>
         </header>
 
         <!-- Login Section -->
@@ -74,6 +90,9 @@
 
         <!-- Language Selection Section -->
         <div id="language-selection-section" class="section hidden">
+            <div class="section-mascot">
+                <img src="mascot.png" alt="Fluently Mascot" class="section-mascot-image">
+            </div>
             <h2>Choose Your Language</h2>
             <p class="subtitle">Which language would you like to learn?</p>
             <div class="language-grid">
@@ -153,6 +172,9 @@
 
         <!-- Test Results Section -->
         <div id="test-results-section" class="section hidden">
+            <div class="celebration-mascot">
+                <img src="mascot.png" alt="Fluently Mascot" class="celebration-mascot-image">
+            </div>
             <h2>Test Results</h2>
             <div class="results-card">
                 <div id="level-badge" class="level-badge"></div>
