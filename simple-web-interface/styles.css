@@ -57,6 +57,60 @@ header h1 {
     color: #333;
 }
 
+/* Password Input Wrapper */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding: 12px 45px 12px 12px !important;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    transition: color 0.3s;
+    z-index: 10;
+}
+
+.password-toggle-btn:hover {
+    color: #667eea;
+}
+
+.password-toggle-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.eye-icon,
+.eye-closed-icon {
+    width: 22px;
+    height: 22px;
+    stroke: currentColor;
+}
+
+.eye-icon.hidden,
+.eye-closed-icon.hidden {
+    display: none !important;
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -601,16 +655,16 @@ header h1 {
     padding: 20px;
 }
 
-.level-badge {
+.results-card .level-badge {
     display: inline-block;
     padding: 15px 40px;
     font-size: 2rem;
     font-weight: bold;
     color: white;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 50px;
+    border-radius: 15px;
     margin-bottom: 30px;
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(108, 115, 220, 0.3);
 }
 
 .section-scores {
