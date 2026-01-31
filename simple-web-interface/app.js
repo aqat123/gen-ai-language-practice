@@ -1,5 +1,6 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+//const API_BASE_URL = 'http://localhost:8000/api/v1'; (for local deployment)
+const API_BASE_URL = 'https://language-app-469l.onrender.com/api/v1';
 
 // Global State
 let authToken = null;
