@@ -1002,6 +1002,11 @@ function startWriting() {
     document.getElementById('writing-language').textContent = currentUser.target_language || 'your target language';
     document.getElementById('writing-text').value = '';
     document.getElementById('writing-feedback').classList.add('hidden');
+    // Reset loading indicator
+    const loadingDiv = document.getElementById('writing-loading');
+    loadingDiv.classList.add('hidden');
+    loadingDiv.textContent = 'Processing your feedback';
+    loadingDiv.style.color = '#333';
 }
 
 async function submitWriting() {
@@ -1011,6 +1016,16 @@ async function submitWriting() {
         showError('Please write something first');
         return;
     }
+
+    // Show loading indicator and disable button
+    const loadingDiv = document.getElementById('writing-loading');
+    const submitBtn = document.getElementById('submit-writing-btn');
+    const feedbackDiv = document.getElementById('writing-feedback');
+    
+    loadingDiv.classList.remove('hidden');
+    loadingDiv.textContent = 'Processing your feedback';
+    submitBtn.disabled = true;
+    feedbackDiv.classList.add('hidden');
 
     try {
         const response = await fetch(`${API_BASE_URL}/writing/feedback`, {
@@ -1024,11 +1039,15 @@ async function submitWriting() {
             logoutUser();
             return;
         }
-        if (!response.ok) throw new Error('Failed to get feedback');
+        if (!response.ok) {
+            // Display error in loading div instead of popup for rate limit errors
+            loadingDiv.textContent = 'Error: Processing your feedback';
+            loadingDiv.style.color = '#333';
+            return;
+        }
 
         const data = await response.json();
 
-        const feedbackDiv = document.getElementById('writing-feedback');
         feedbackDiv.innerHTML = `
             <div class="corrected-text">
                 <h3>✅ Corrected Text:</h3>
@@ -1043,8 +1062,14 @@ async function submitWriting() {
             <button onclick="startWriting()" class="btn btn-primary">Try Another</button>
         `;
         feedbackDiv.classList.remove('hidden');
+        loadingDiv.classList.add('hidden');
     } catch (error) {
-        showError(error.message);
+        // Display error in loading div instead of popup
+        loadingDiv.textContent = 'Error: Processing your feedback';
+        loadingDiv.style.color = '#333';
+    } finally {
+        // Re-enable button
+        submitBtn.disabled = false;
     }
 }
 
