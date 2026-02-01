@@ -193,6 +193,112 @@ async def apply_cheat_code(
         raise HTTPException(status_code=500, detail=f"Failed to apply cheat code: {str(e)}")
 
 
+@router.get("/charts")
+async def get_charts_data(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get data formatted for charts visualization.
+
+    Returns:
+    - activity_by_date: Daily activity counts by module (last 30 days)
+    - module_scores: Current scores for each module
+    - level_progression: Historical level completion data
+    """
+    from app.db.models import ContentLog, UserProgress, LevelHistory
+    from datetime import datetime, timedelta
+    from collections import defaultdict
+
+    try:
+        # 1. Activity over time (last 30 days)
+        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+
+        logs = db.query(ContentLog).filter(
+            ContentLog.user_id == current_user.id,
+            ContentLog.created_at >= thirty_days_ago
+        ).all()
+
+        # Group by date and module
+        activity_by_date = defaultdict(lambda: defaultdict(int))
+        for log in logs:
+            date_str = log.created_at.strftime('%Y-%m-%d')
+            activity_by_date[date_str][log.module] += 1
+
+        # Convert to sorted list
+        sorted_dates = sorted(activity_by_date.keys())
+        activity_data = {
+            "dates": sorted_dates,
+            "vocabulary": [activity_by_date[d].get("vocabulary", 0) for d in sorted_dates],
+            "grammar": [activity_by_date[d].get("grammar", 0) for d in sorted_dates],
+            "writing": [activity_by_date[d].get("writing", 0) for d in sorted_dates],
+            "phonetics": [activity_by_date[d].get("phonetics", 0) for d in sorted_dates],
+            "conversation": [activity_by_date[d].get("conversation", 0) for d in sorted_dates]
+        }
+
+        # 2. Current module scores
+        progress_records = db.query(UserProgress).filter(
+            UserProgress.user_id == current_user.id
+        ).all()
+
+        module_scores = {
+            "modules": [],
+            "scores": []
+        }
+
+        for progress in progress_records:
+            if progress.score is not None:
+                module_scores["modules"].append(progress.module.capitalize())
+                module_scores["scores"].append(round(progress.score, 1))
+
+        # 3. Level progression history
+        level_history = db.query(LevelHistory).filter(
+            LevelHistory.user_id == current_user.id
+        ).order_by(LevelHistory.completed_at).all()
+
+        level_progression = {
+            "levels": [],
+            "scores": [],
+            "dates": []
+        }
+
+        for record in level_history:
+            level_progression["levels"].append(record.level)
+            level_progression["scores"].append(round(record.weighted_score, 1))
+            level_progression["dates"].append(record.completed_at.strftime('%Y-%m-%d'))
+
+        # Always add current level to show progress
+        if current_user.level:
+            # Calculate current weighted score from all modules
+            current_progress = db.query(UserProgress).filter(
+                UserProgress.user_id == current_user.id
+            ).all()
+
+            scores = [p.score for p in current_progress if p.score is not None]
+
+            # Show current level even if no scores yet
+            if scores:
+                current_weighted = sum(scores) / len(scores)
+            else:
+                current_weighted = 0.0
+
+            level_label = f"{current_user.level} (Current)" if level_history else current_user.level
+            level_progression["levels"].append(level_label)
+            level_progression["scores"].append(round(current_weighted, 1))
+
+            date_str = current_user.level_started_at.strftime('%Y-%m-%d') if current_user.level_started_at else datetime.utcnow().strftime('%Y-%m-%d')
+            level_progression["dates"].append(date_str)
+
+        return {
+            "activity_over_time": activity_data,
+            "module_scores": module_scores,
+            "level_progression": level_progression
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get charts data: {str(e)}")
+
+
 @router.get("/modules/{module}")
 async def get_module_details(
     module: str,

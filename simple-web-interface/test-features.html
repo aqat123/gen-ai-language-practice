@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test New Features</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        .test-card {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .success { color: green; }
+        .error { color: red; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test New Features</h1>
+
+    <div class="test-card">
+        <h2>Feature Detection Test</h2>
+        <button onclick="runTests()">Run Tests</button>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-card">
+        <h2>Manual Navigation</h2>
+        <p>Use these buttons to navigate directly:</p>
+        <button onclick="window.location.href='index.html'">Go to Main App</button>
+    </div>
+
+    <script>
+        function runTests() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h3>Test Results:</h3>';
+
+            // Test 1: Check if app.js has the new functions
+            fetch('app.js?v=10')
+                .then(r => r.text())
+                .then(code => {
+                    const tests = [
+                        { name: 'Theme Toggle', check: code.includes('function toggleTheme') },
+                        { name: 'Speaking Function', check: code.includes('function speakText') },
+                        { name: 'Writing Prompts Loader', check: code.includes('async function loadWritingPrompts') },
+                        { name: 'Prompt Selector Display', check: code.includes('function displayPromptSelector') },
+                        { name: 'Conversation Topics', check: code.includes('function startConversationWithTopic') },
+                        { name: 'Topic Selector', check: code.includes('function changeTopic') }
+                    ];
+
+                    tests.forEach(test => {
+                        const status = test.check ? '✅' : '❌';
+                        const className = test.check ? 'success' : 'error';
+                        results.innerHTML += `<p class="${className}">${status} ${test.name}</p>`;
+                    });
+                })
+                .catch(e => {
+                    results.innerHTML += `<p class="error">❌ Error loading app.js: ${e.message}</p>`;
+                });
+
+            // Test 2: Check HTML
+            fetch('index.html')
+                .then(r => r.text())
+                .then(html => {
+                    const htmlTests = [
+                        { name: 'Theme Toggle Button', check: html.includes('id="theme-toggle"') },
+                        { name: 'Writing Prompt Selector', check: html.includes('id="writing-prompt-selector"') },
+                        { name: 'Prompts Grid', check: html.includes('id="prompts-grid"') },
+                        { name: 'Topic Selector', check: html.includes('id="topic-selector"') },
+                        { name: 'Cache Busting', check: html.includes('app.js?v=10') }
+                    ];
+
+                    htmlTests.forEach(test => {
+                        const status = test.check ? '✅' : '❌';
+                        const className = test.check ? 'success' : 'error';
+                        results.innerHTML += `<p class="${className}">${status} ${test.name}</p>`;
+                    });
+                })
+                .catch(e => {
+                    results.innerHTML += `<p class="error">❌ Error loading index.html: ${e.message}</p>`;
+                });
+        }
+
+        // Auto-run on load
+        window.onload = runTests;
+    </script>
+</body>
+</html>

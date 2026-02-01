@@ -212,6 +212,10 @@ async def submit_grammar_answer(
 
     db.commit()
 
+    # Check for achievements
+    from app.services.achievements_service import check_and_unlock_achievements
+    newly_unlocked = check_and_unlock_achievements(user.id, db)
+
     # Check if user now meets advancement criteria
     from app.services.progress_service import calculate_advancement_eligibility
     eligibility = calculate_advancement_eligibility(user.id, db)

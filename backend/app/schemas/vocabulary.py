@@ -19,6 +19,8 @@ class FlashcardResponse(BaseModel):
     correct_option_index: Optional[int] = None
     image_data: Optional[str] = None
     validation: Optional[ValidationMetadata] = None
+    is_review: Optional[bool] = False
+    review_id: Optional[int] = None
 
 
 class VocabularyAnswerRequest(BaseModel):
@@ -26,6 +28,8 @@ class VocabularyAnswerRequest(BaseModel):
     word: str
     selected_option_index: int
     correct_option_index: int
+    quality: Optional[int] = None
+    review_id: Optional[int] = None
 
 
 class VocabularyAnswerResponse(BaseModel):
@@ -33,3 +37,11 @@ class VocabularyAnswerResponse(BaseModel):
     is_correct: bool
     correct_option_index: int
     explanation: Optional[str] = None
+
+
+class ReviewStatsResponse(BaseModel):
+    """SRS review statistics."""
+    due: int
+    learning: int
+    mastered: int
+    total: int
