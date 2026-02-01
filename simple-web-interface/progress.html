@@ -233,6 +233,13 @@
         </div>
     </div>
 
+    <script>
+        // Load theme immediately (before DOMContentLoaded to prevent flash)
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     <script src="app.js?v=12"></script>
     <script>
         // Theme toggle function
@@ -243,38 +250,33 @@
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
 
-            const sunIcon = document.getElementById('sun-icon');
-            const moonIcon = document.getElementById('moon-icon');
-
-            if (newTheme === 'dark') {
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            } else {
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            }
+            updateThemeIcons(newTheme);
         }
 
-        // Load theme on page load
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-
+        // Update theme icons based on current theme
+        function updateThemeIcons(theme) {
             const sunIcon = document.getElementById('sun-icon');
             const moonIcon = document.getElementById('moon-icon');
 
-            if (savedTheme === 'dark') {
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            } else {
+            if (!sunIcon || !moonIcon) return;
+
+            // In dark mode, show sun icon (to switch to light)
+            // In light mode, show moon icon (to switch to dark)
+            if (theme === 'dark') {
                 sunIcon.classList.remove('hidden');
                 moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
             }
         }
 
         // Load progress when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            loadTheme();
+            // Set icons based on current theme
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            updateThemeIcons(currentTheme);
+
             checkAuth();
             loadProgressDashboard();
             loadLevelHistory();

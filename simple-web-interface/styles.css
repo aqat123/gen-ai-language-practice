@@ -2196,6 +2196,10 @@ header h1 {
     margin-bottom: 30px;
 }
 
+.prompt-selector h3 {
+    color: var(--text-primary);
+}
+
 .subtitle-text {
     color: var(--text-secondary);
     margin-bottom: 20px;
@@ -2287,6 +2291,10 @@ header h1 {
 /* Conversation Topic Selector */
 .topic-selector {
     margin-bottom: 30px;
+}
+
+.topic-selector h3 {
+    color: var(--text-primary);
 }
 
 .topics-grid {
@@ -2859,4 +2867,19 @@ header h1 {
 
 [data-theme="dark"] .progress-text {
     color: #e2e8f0;
+}
+
+[data-theme="dark"] .progress-header {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    border: 2px solid #4a5568;
+}
+
+[data-theme="dark"] .stat-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .level-badge {
+    background: rgba(102, 126, 234, 0.3);
+    border: 2px solid #667eea;
 }
