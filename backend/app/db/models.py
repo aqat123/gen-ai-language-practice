@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Float, Integer, Boolean, JSON, ForeignKey
+from sqlalchemy import Column, String, DateTime, Float, Integer, Boolean, JSON, ForeignKey, Text, Index
 from sqlalchemy.sql import func
 from uuid import uuid4
 from app.db.database import Base
@@ -134,3 +134,64 @@ class LevelHistory(Base):
 
     # Overall metric
     weighted_score = Column(Float, nullable=False)
+
+
+class VocabularyReview(Base):
+    """Spaced Repetition System (SRS) for vocabulary review."""
+    __tablename__ = "vocabulary_reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    word = Column(String(200), nullable=False)
+    definition = Column(Text, nullable=False)
+    example_sentence = Column(Text, nullable=True)
+    target_language = Column(String(50), nullable=False)
+
+    # SM-2 Algorithm fields
+    easiness_factor = Column(Float, default=2.5)  # Initial EF = 2.5
+    repetitions = Column(Integer, default=0)  # Number of consecutive correct reviews
+    interval = Column(Integer, default=1)  # Days until next review
+    next_review_date = Column(DateTime, nullable=False)
+
+    # Timestamps
+    created_at = Column(DateTime, server_default=func.now())
+    last_reviewed_at = Column(DateTime, nullable=True)
+
+    # Indexes for efficient querying
+    __table_args__ = (
+        Index('idx_user_next_review', 'user_id', 'next_review_date'),
+        Index('idx_user_word', 'user_id', 'word'),
+    )
+
+
+class Achievement(Base):
+    """Predefined achievements that users can unlock."""
+    __tablename__ = "achievements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(100), unique=True, nullable=False)  # e.g., "first_word"
+    name = Column(String(200), nullable=False)  # e.g., "First Word"
+    description = Column(Text, nullable=False)
+    criteria_type = Column(String(50), nullable=False)  # count, score, streak, level_advance, total_xp
+    criteria_threshold = Column(Integer, nullable=True)  # Numeric threshold for criteria
+    criteria_module = Column(String(50), nullable=True)  # vocabulary, grammar, writing, etc.
+    xp_reward = Column(Integer, default=0)
+    tier = Column(String(20), default="bronze")  # bronze, silver, gold, platinum
+
+    # Icon/visual
+    icon = Column(String(10), nullable=True)  # Emoji icon
+
+
+class UserAchievement(Base):
+    """Tracks which achievements users have unlocked."""
+    __tablename__ = "user_achievements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    achievement_id = Column(Integer, ForeignKey("achievements.id"), nullable=False)
+    unlocked_at = Column(DateTime, server_default=func.now())
+    is_viewed = Column(Boolean, default=False)  # For "NEW" badge
+
+    __table_args__ = (
+        Index('idx_user_achievement', 'user_id', 'achievement_id'),
+    )

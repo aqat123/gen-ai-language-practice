@@ -1,3 +1,34 @@
+/* CSS Variables for Theming */
+:root {
+    --bg-gradient-start: #667eea;
+    --bg-gradient-end: #764ba2;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
+    --text-light: white;
+    --border-color: #e2e8f0;
+    --shadow-sm: rgba(0, 0, 0, 0.1);
+    --shadow-md: rgba(0, 0, 0, 0.15);
+    --shadow-lg: rgba(0, 0, 0, 0.2);
+    --overlay: rgba(255, 255, 255, 0.1);
+    --btn-hover: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] {
+    --bg-gradient-start: #1a202c;
+    --bg-gradient-end: #2d3748;
+    --card-bg: rgba(45, 55, 72, 0.95);
+    --text-primary: #f7fafc;
+    --text-secondary: #e2e8f0;
+    --text-light: white;
+    --border-color: #4a5568;
+    --shadow-sm: rgba(0, 0, 0, 0.3);
+    --shadow-md: rgba(0, 0, 0, 0.4);
+    --shadow-lg: rgba(0, 0, 0, 0.5);
+    --overlay: rgba(0, 0, 0, 0.2);
+    --btn-hover: rgba(255, 255, 255, 0.1);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -6,12 +37,13 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
     background-attachment: fixed;
     min-height: 100vh;
     padding: 20px;
     position: relative;
     overflow-x: hidden;
+    transition: background 0.3s ease;
 }
 
 body::before {
@@ -22,8 +54,8 @@ body::before {
     right: 0;
     bottom: 0;
     background-image:
-        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        radial-gradient(circle at 20% 50%, var(--overlay) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, var(--overlay) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
 }
@@ -111,13 +143,14 @@ header h1 {
 }
 
 .section {
-    background: white;
+    background: var(--card-bg);
     border-radius: 24px;
     padding: 40px;
     margin-bottom: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.1);
+    box-shadow: 0 20px 60px var(--shadow-md), 0 0 0 1px var(--overlay);
     animation: fadeInUp 0.6s ease-out;
     backdrop-filter: blur(10px);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 @keyframes fadeInUp {
@@ -516,6 +549,7 @@ header h1 {
     flex-direction: column;
     justify-content: center;
     box-shadow: 0 10px 30px rgba(252, 182, 159, 0.3);
+    position: relative;
     border: 2px solid rgba(255, 255, 255, 0.5);
     position: relative;
     overflow: hidden;
@@ -2027,5 +2061,291 @@ header h1 {
 
     .level-transition {
         font-size: 1.5rem;
+    }
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 0 50% 50% 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-left: none;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 8px;
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.theme-toggle-btn svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+}
+
+[data-theme="dark"] .theme-toggle-btn {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Audio Button for Flashcards */
+.audio-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.audio-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.audio-btn:active {
+    transform: scale(0.95);
+}
+
+.audio-btn svg {
+    width: 22px;
+    height: 22px;
+    color: white;
+}
+
+[data-theme="dark"] .audio-btn {
+    border-color: #764ba2;
+    box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4);
+}
+
+/* Writing Prompts */
+.prompt-selector {
+    margin-bottom: 30px;
+}
+
+.subtitle-text {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.prompts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.prompt-card {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.prompt-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-color: #667eea;
+}
+
+.prompt-card h4 {
+    color: #2d3748;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.prompt-card p {
+    color: #4a5568;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+[data-theme="dark"] .prompt-card {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+}
+
+[data-theme="dark"] .prompt-card h4 {
+    color: #f7fafc;
+}
+
+[data-theme="dark"] .prompt-card p {
+    color: #e2e8f0;
+}
+
+.selected-prompt {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.selected-prompt h4 {
+    color: #2d3748;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.selected-prompt p {
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    font-size: 0.9rem;
+}
+
+.btn-link:hover {
+    color: #764ba2;
+}
+
+/* Conversation Topic Selector */
+.topic-selector {
+    margin-bottom: 30px;
+}
+
+.topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.topic-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 24px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    border: 3px solid transparent;
+    color: white;
+}
+
+.topic-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.topic-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.topic-card h4 {
+    color: white;
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.current-topic {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.current-topic span {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+[data-theme="dark"] .topic-card {
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .topic-card:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Progress Charts */
+.charts-section {
+    margin-bottom: 40px;
+}
+
+.charts-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.chart-card {
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px var(--shadow-sm);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chart-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px var(--shadow-md);
+}
+
+.chart-card h3 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.chart-card canvas {
+    max-height: 300px;
+}
+
+@media (max-width: 768px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-card canvas {
+        max-height: 250px;
     }
 }

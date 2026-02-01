@@ -16,6 +16,60 @@ let audioChunks = [];
 let audioBlob = null;
 let nextFlashcardPromise = null;
 
+// Theme Management
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+        themeBtn.innerHTML = theme === 'light'
+            ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
+            : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+    }
+}
+
+// Text-to-Speech for Vocabulary
+function speakText(text, language) {
+    if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        // Map language to speech synthesis language codes
+        const languageMap = {
+            'Spanish': 'es-ES',
+            'French': 'fr-FR',
+            'German': 'de-DE',
+            'Italian': 'it-IT',
+            'Portuguese': 'pt-PT',
+            'Japanese': 'ja-JP',
+            'Korean': 'ko-KR',
+            'Chinese': 'zh-CN'
+        };
+
+        utterance.lang = languageMap[language] || 'en-US';
+        utterance.rate = 0.9; // Slightly slower for learning
+        utterance.pitch = 1.0;
+
+        window.speechSynthesis.speak(utterance);
+    } else {
+        console.warn('Text-to-speech not supported in this browser');
+    }
+}
+
 // Utility Functions
 function showSection(sectionId) {
     document.querySelectorAll('.section').forEach(section => {
@@ -82,6 +136,9 @@ function togglePasswordVisibility(inputId, event) {
 
 // Initialize app on page load
 async function initializeApp() {
+    // Initialize theme
+    initializeTheme();
+
     const token = loadAuthToken();
     if (token) {
         // Try to get current user
@@ -654,6 +711,12 @@ function displayFlashcard() {
     }
 
     const flashcardHtml = `
+        <button class="audio-btn" onclick="speakText('${currentFlashcard.word.replace(/'/g, "\\'")}', '${currentUser.target_language}')" title="Listen to pronunciation">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+        </button>
         <div class="word">${currentFlashcard.word}</div>
         <div class="example">"${currentFlashcard.example_sentence}"</div>
         <div class="definition-label">What does this mean?</div>
@@ -814,15 +877,43 @@ async function selectOption(selectedIndex) {
 }
 
 // Conversation Module
-async function startConversation() {
+function startConversation() {
     showSection('conversation-section');
+
+    // Show topic selector
+    document.getElementById('topic-selector').classList.remove('hidden');
+    document.getElementById('chat-area').classList.add('hidden');
+}
+
+async function startConversationWithTopic(topic) {
+    // Hide topic selector, show chat area
+    document.getElementById('topic-selector').classList.add('hidden');
+    document.getElementById('chat-area').classList.remove('hidden');
+
+    // Display selected topic
+    if (topic !== 'random') {
+        const topicNames = {
+            'travel': '✈️ Travel',
+            'food': '🍽️ Food & Dining',
+            'hobbies': '🎨 Hobbies',
+            'work': '💼 Work & Career',
+            'culture': '🎭 Culture',
+            'daily_life': '🏠 Daily Life',
+            'education': '📚 Education'
+        };
+        document.getElementById('topic-name').textContent = `Topic: ${topicNames[topic]}`;
+        document.getElementById('current-topic-display').classList.remove('hidden');
+    } else {
+        document.getElementById('current-topic-display').classList.add('hidden');
+    }
+
     document.getElementById('chat-container').innerHTML = '<div class="loading">Starting conversation...</div>';
 
     try {
         const response = await fetch(`${API_BASE_URL}/conversation/start`, {
             method: 'POST',
             headers: getAuthHeaders(),
-            body: JSON.stringify({ topic: null })
+            body: JSON.stringify({ topic: topic === 'random' ? null : topic })
         });
 
         if (response.status === 401) {
@@ -842,6 +933,12 @@ async function startConversation() {
         document.getElementById('chat-container').innerHTML =
             `<div class="loading">Error: ${error.message}</div>`;
     }
+}
+
+function changeTopic() {
+    document.getElementById('topic-selector').classList.remove('hidden');
+    document.getElementById('chat-area').classList.add('hidden');
+    currentConversationId = null;
 }
 
 function handleChatKeyPress(event) {
@@ -998,16 +1095,103 @@ async function selectGrammarOption(selectedIndex) {
 
 // Writing Module
 // TODO: add loading indicators, currently you have no idea if something is happening after you click submit
-function startWriting() {
+async function startWriting() {
     showSection('writing-section');
     document.getElementById('writing-language').textContent = currentUser.target_language || 'your target language';
     document.getElementById('writing-text').value = '';
     document.getElementById('writing-feedback').classList.add('hidden');
+
     // Reset loading indicator
     const loadingDiv = document.getElementById('writing-loading');
     loadingDiv.classList.add('hidden');
     loadingDiv.textContent = 'Processing your feedback';
     loadingDiv.style.color = '#333';
+
+    // Show prompt selector
+    await loadWritingPrompts();
+}
+
+async function loadWritingPrompts() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/writing/prompts`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to load prompts');
+
+        const prompts = await response.json();
+        displayPromptSelector(prompts);
+    } catch (error) {
+        console.error('Error loading prompts:', error);
+        // Fallback to default prompts (client-side)
+        const fallbackPrompts = [
+            {
+                title: "My Daily Routine",
+                prompt: "Describe your typical day. What time do you wake up? What do you eat for breakfast? What do you do in the evening?"
+            },
+            {
+                title: "My Family",
+                prompt: "Write about your family. Who are the members of your family? What do they do? What do they look like?"
+            },
+            {
+                title: "My Favorite Food",
+                prompt: "What is your favorite food? Describe it. Why do you like it? When do you usually eat it?"
+            },
+            {
+                title: "A Memorable Trip",
+                prompt: "Write about a trip you took. Where did you go? What did you see? What was the most interesting thing you did?"
+            },
+            {
+                title: "My Hobbies",
+                prompt: "What do you like to do in your free time? Do you have any hobbies? How often do you do them?"
+            },
+            {
+                title: "My Hometown",
+                prompt: "Describe your hometown or city. What is it famous for? What do you like or dislike about it?"
+            },
+            {
+                title: "Learning Languages",
+                prompt: "Why are you learning this language? What do you find easy or difficult? How do you practice?"
+            },
+            {
+                title: "My Goals",
+                prompt: "What are your goals for the future? What do you want to achieve? How will you get there?"
+            }
+        ];
+        displayPromptSelector(fallbackPrompts);
+    }
+}
+
+function displayPromptSelector(prompts) {
+    const grid = document.getElementById('prompts-grid');
+    grid.innerHTML = prompts.map(prompt => `
+        <div class="prompt-card" onclick='selectPrompt(${JSON.stringify(prompt).replace(/'/g, "&apos;")})'>
+            <h4>${prompt.title}</h4>
+            <p>${prompt.prompt}</p>
+        </div>
+    `).join('');
+
+    document.getElementById('writing-prompt-selector').classList.remove('hidden');
+    document.getElementById('writing-input-area').classList.add('hidden');
+}
+
+function selectPrompt(prompt) {
+    document.getElementById('prompt-title').textContent = prompt.title;
+    document.getElementById('prompt-text').textContent = prompt.prompt;
+    document.getElementById('selected-prompt-display').classList.remove('hidden');
+
+    document.getElementById('writing-prompt-selector').classList.add('hidden');
+    document.getElementById('writing-input-area').classList.remove('hidden');
+}
+
+function showPromptSelector() {
+    loadWritingPrompts();
+}
+
+function writeFreeForm() {
+    document.getElementById('selected-prompt-display').classList.add('hidden');
+    document.getElementById('writing-prompt-selector').classList.add('hidden');
+    document.getElementById('writing-input-area').classList.remove('hidden');
 }
 
 async function submitWriting() {
@@ -1726,6 +1910,241 @@ function initMascotHelper() {
     }
 }
 
+// ============================================
+// PROGRESS CHARTS FUNCTIONS
+// ============================================
+
+let activityChart = null;
+let scoresChart = null;
+let levelChart = null;
+
+async function loadProgressCharts() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/progress/charts`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            console.error('Failed to load charts data');
+            return;
+        }
+
+        const data = await response.json();
+
+        // Render each chart
+        renderActivityChart(data.activity_over_time);
+        renderScoresChart(data.module_scores);
+        renderLevelChart(data.level_progression);
+
+    } catch (error) {
+        console.error('Error loading charts:', error);
+    }
+}
+
+function renderActivityChart(data) {
+    const ctx = document.getElementById('activityChart');
+    if (!ctx) return;
+
+    // Destroy existing chart if it exists
+    if (activityChart) {
+        activityChart.destroy();
+    }
+
+    const chartData = {
+        labels: data.dates.map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+        datasets: [
+            {
+                label: 'Vocabulary',
+                data: data.vocabulary,
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Grammar',
+                data: data.grammar,
+                borderColor: '#f093fb',
+                backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Writing',
+                data: data.writing,
+                borderColor: '#4facfe',
+                backgroundColor: 'rgba(79, 172, 254, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Phonetics',
+                data: data.phonetics,
+                borderColor: '#43e97b',
+                backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                tension: 0.4,
+                fill: true
+            },
+            {
+                label: 'Conversation',
+                data: data.conversation,
+                borderColor: '#fa709a',
+                backgroundColor: 'rgba(250, 112, 154, 0.1)',
+                tension: 0.4,
+                fill: true
+            }
+        ]
+    };
+
+    activityChart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderScoresChart(data) {
+    const ctx = document.getElementById('scoresChart');
+    if (!ctx) return;
+
+    // Destroy existing chart if it exists
+    if (scoresChart) {
+        scoresChart.destroy();
+    }
+
+    if (!data.modules || data.modules.length === 0) {
+        ctx.getContext('2d').font = '16px Inter';
+        ctx.getContext('2d').fillText('No data yet - complete some activities!', 10, 50);
+        return;
+    }
+
+    const chartData = {
+        labels: data.modules,
+        datasets: [{
+            label: 'Score (%)',
+            data: data.scores,
+            backgroundColor: [
+                'rgba(102, 126, 234, 0.8)',
+                'rgba(240, 147, 251, 0.8)',
+                'rgba(79, 172, 254, 0.8)',
+                'rgba(67, 233, 123, 0.8)',
+                'rgba(250, 112, 154, 0.8)'
+            ],
+            borderColor: [
+                '#667eea',
+                '#f093fb',
+                '#4facfe',
+                '#43e97b',
+                '#fa709a'
+            ],
+            borderWidth: 2
+        }]
+    };
+
+    scoresChart = new Chart(ctx, {
+        type: 'bar',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderLevelChart(data) {
+    const ctx = document.getElementById('levelChart');
+    if (!ctx) return;
+
+    // Destroy existing chart if it exists
+    if (levelChart) {
+        levelChart.destroy();
+    }
+
+    if (!data.levels || data.levels.length === 0) {
+        ctx.getContext('2d').font = '16px Inter';
+        ctx.getContext('2d').fillText('No level history yet', 10, 50);
+        return;
+    }
+
+    const chartData = {
+        labels: data.levels,
+        datasets: [{
+            label: 'Weighted Score',
+            data: data.scores,
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 6,
+            pointBackgroundColor: '#667eea',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+        }]
+    };
+
+    levelChart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 // Initialize app on page load (only on index.html)
 window.addEventListener('DOMContentLoaded', function() {
     // Only run initializeApp on index.html (main page)
@@ -1734,5 +2153,11 @@ window.addEventListener('DOMContentLoaded', function() {
     if (isMainPage) {
         initializeApp();
         initMascotHelper();
+    }
+
+    // Load charts on progress page
+    if (window.location.pathname.includes('progress.html')) {
+        // Wait a bit for the page to load progress data first
+        setTimeout(loadProgressCharts, 1000);
     }
 });

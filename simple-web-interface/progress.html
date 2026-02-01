@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -31,6 +32,30 @@
                         <span class="stat-label">Total XP</span>
                         <span id="total-xp" class="stat-value">0 XP</span>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <h2>📊 Your Learning Analytics</h2>
+            <div class="charts-grid">
+                <!-- Activity Over Time Chart -->
+                <div class="chart-card">
+                    <h3>Activity Over Time (Last 30 Days)</h3>
+                    <canvas id="activityChart"></canvas>
+                </div>
+
+                <!-- Module Scores Chart -->
+                <div class="chart-card">
+                    <h3>Current Module Scores</h3>
+                    <canvas id="scoresChart"></canvas>
+                </div>
+
+                <!-- Level Progression Chart -->
+                <div class="chart-card">
+                    <h3>Level Progression</h3>
+                    <canvas id="levelChart"></canvas>
                 </div>
             </div>
         </div>
@@ -190,7 +215,7 @@
         </div>
     </div>
 
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=12"></script>
     <script>
         // Load progress when page loads
         document.addEventListener('DOMContentLoaded', function() {
