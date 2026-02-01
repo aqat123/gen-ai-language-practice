@@ -128,8 +128,9 @@ async def get_next_flashcard(
     # Check for due SRS reviews first
     due_reviews = get_due_reviews(db, user)
     if due_reviews:
-        # Return a random due review as a flashcard
-        review = random.choice(due_reviews)
+        # Get the oldest due review (FIFO - first in, first out)
+        # This ensures cards are reviewed in order and prevents showing the same card twice
+        review = due_reviews[0]  # Already ordered by next_review_date in get_due_reviews
 
         # Generate simple distractor options (generic wrong answers)
         # This avoids LLM calls for reviews and makes them faster

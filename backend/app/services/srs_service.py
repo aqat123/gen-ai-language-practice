@@ -40,8 +40,9 @@ def calculate_sm2(quality: int, easiness_factor: float, repetitions: int, interv
 
     # Update repetitions and interval
     if quality < 3:
-        # Incorrect or difficult response - restart
-        new_repetitions = 0
+        # Incorrect or difficult response - reduce repetitions but don't fully restart
+        # This is more forgiving than standard SM-2 for language learning
+        new_repetitions = max(0, repetitions - 2)  # Lose 2 levels instead of resetting to 0
         new_interval = 1
     else:
         # Correct response
@@ -107,7 +108,7 @@ def add_word_to_srs(
         easiness_factor=2.5,
         repetitions=0,
         interval=1,
-        next_review_date=datetime.now() + timedelta(days=1)  # First review tomorrow
+        next_review_date=datetime.now()  # First review immediately (in same session)
     )
 
     db.add(review)

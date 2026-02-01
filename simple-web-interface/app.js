@@ -716,8 +716,8 @@ async function startVocabulary() {
         currentFlashcard = await response.json();
         displayFlashcard();
 
-        // see if you can preload the next flashcard
-        preloadNextFlashcard();
+        // Don't preload yet - wait until user answers to avoid showing same card twice
+        // preloadNextFlashcard();
 
     } catch (error) {
         document.getElementById('flashcard').innerHTML =
@@ -830,12 +830,27 @@ async function loadNextWord() {
 
         console.log('Next flashcard loaded:', nextCardData.word);
 
+        // Safety check: If we got the same card again (shouldn't happen with FIFO, but just in case)
+        // Fetch a different one
+        if (currentFlashcard && nextCardData.word === currentFlashcard.word &&
+            nextCardData.definition === currentFlashcard.definition) {
+            console.warn('Got same card again, fetching a new one...');
+            const response = await fetch(
+                `${API_BASE_URL}/vocabulary/next`,
+                { headers: getAuthHeaders() }
+            );
+            if (response.ok) {
+                nextCardData = await response.json();
+                console.log('Fetched replacement card:', nextCardData.word);
+            }
+        }
+
         // Swap Data
         currentFlashcard = nextCardData;
         displayFlashcard();
 
-        // Trigger the next pre-fetch too for max efficiency
-        preloadNextFlashcard();
+        // Don't preload here - it will be preloaded after the user answers
+        // preloadNextFlashcard();
 
     } catch (error) {
         console.error('Error loading next word:', error);
@@ -922,6 +937,13 @@ async function selectOption(selectedIndex) {
 
         // Check for newly unlocked achievements
         checkForNewAchievements();
+
+        // Now preload the next flashcard AFTER the answer has been submitted and processed
+        // This ensures the database has been updated and we won't get the same card again
+        // Use a longer delay to ensure database commit completes
+        setTimeout(() => {
+            preloadNextFlashcard();
+        }, 300);
 
     } catch (error) {
         console.error('Error submitting answer:', error);
