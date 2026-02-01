@@ -1,6 +1,5 @@
-.venv/
 venv/
-.credentials/
-.idea/
+credentials/
+idea/
 *.json
 *.env
