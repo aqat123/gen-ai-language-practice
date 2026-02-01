@@ -141,7 +141,7 @@ class VocabularyReview(Base):
     __tablename__ = "vocabulary_reviews"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
     word = Column(String(200), nullable=False)
     definition = Column(Text, nullable=False)
     example_sentence = Column(Text, nullable=True)
@@ -187,7 +187,7 @@ class UserAchievement(Base):
     __tablename__ = "user_achievements"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
     achievement_id = Column(Integer, ForeignKey("achievements.id"), nullable=False)
     unlocked_at = Column(DateTime, server_default=func.now())
     is_viewed = Column(Boolean, default=False)  # For "NEW" badge

@@ -4,8 +4,9 @@ from typing import Optional
 
 from app.api.deps import get_db, get_current_user
 from app.db.models import User
-from app.schemas.vocabulary import FlashcardResponse, VocabularyAnswerRequest, VocabularyAnswerResponse
+from app.schemas.vocabulary import FlashcardResponse, VocabularyAnswerRequest, VocabularyAnswerResponse, ReviewStatsResponse
 from app.services.vocabulary import get_next_flashcard, submit_vocabulary_answer
+from app.services.srs_service import get_review_stats
 
 router = APIRouter()
 
@@ -39,5 +40,18 @@ async def submit_answer(
         return await submit_vocabulary_answer(request, current_user, db)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/review-stats", response_model=ReviewStatsResponse)
+async def get_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get SRS review statistics for the current user."""
+    try:
+        stats = get_review_stats(db, current_user)
+        return ReviewStatsResponse(**stats)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

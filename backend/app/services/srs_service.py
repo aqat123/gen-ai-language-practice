@@ -221,14 +221,14 @@ def get_review_stats(db: Session, user: User) -> Dict:
     }
 
 
-def get_review_by_id(db: Session, review_id: int, user_id: int) -> Optional[VocabularyReview]:
+def get_review_by_id(db: Session, review_id: int, user_id: str) -> Optional[VocabularyReview]:
     """
     Get a specific review by ID for a user.
 
     Args:
         db: Database session
         review_id: Review ID
-        user_id: User ID (for security check)
+        user_id: User ID (string/UUID) (for security check)
 
     Returns:
         VocabularyReview object or None

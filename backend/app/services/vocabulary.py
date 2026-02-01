@@ -5,6 +5,8 @@ from uuid import uuid4
 from app.db.models import User, ContentLog, UserProgress
 from app.services.image_client import get_image_client
 from app.core.config import settings
+from app.services.srs_service import get_due_reviews, add_word_to_srs, update_review
+import random
 
 # Conditionally import Vertex AI client
 if settings.USE_VERTEX_AI:
@@ -13,7 +15,7 @@ if settings.USE_VERTEX_AI:
     except ImportError:
         print("Warning: Vertex AI not available. Install google-cloud-aiplatform.")
 from app.services.ai_services import get_llm_client, get_checker_service, get_secondary_validator
-from app.schemas.vocabulary import FlashcardResponse, VocabularyAnswerRequest, VocabularyAnswerResponse
+from app.schemas.vocabulary import FlashcardResponse, VocabularyAnswerRequest, VocabularyAnswerResponse, ValidationMetadata
 from datetime import datetime
 
 
@@ -122,6 +124,42 @@ async def get_next_flashcard(
         db.add(user)
         db.commit()
         db.refresh(user)
+
+    # Check for due SRS reviews first
+    due_reviews = get_due_reviews(db, user)
+    if due_reviews:
+        # Return a random due review as a flashcard
+        review = random.choice(due_reviews)
+
+        # Generate simple distractor options (generic wrong answers)
+        # This avoids LLM calls for reviews and makes them faster
+        distractors = [
+            "a type of food or drink",
+            "a place or location",
+            "an action or activity"
+        ]
+
+        # Create options with correct answer at random position
+        correct_index = random.randint(0, 3)
+        options = distractors[:3]
+        options.insert(correct_index, review.definition)
+
+        return FlashcardResponse(
+            word=review.word,
+            definition=review.definition,
+            example_sentence=review.example_sentence or "",
+            options=options,
+            correct_option_index=correct_index,
+            image_data=None,
+            is_review=True,
+            review_id=review.id,
+            validation=ValidationMetadata(
+                is_validated=True,
+                confidence_score=1.0,
+                primary_check_passed=True,
+                secondary_check_passed=True
+            )
+        )
 
     level_info = f" at {level} level" if level else ""
 
@@ -256,6 +294,15 @@ async def get_next_flashcard(
     db.add(content_log)
     db.commit()
 
+    # Add new word to SRS for future review
+    add_word_to_srs(
+        db=db,
+        user=user,
+        word=word,
+        definition=definition,
+        example_sentence=example_sentence
+    )
+
     return FlashcardResponse(**flashcard_data)
 
 
@@ -278,6 +325,10 @@ async def submit_vocabulary_answer(
     user = current_user
 
     is_correct = request.selected_option_index == request.correct_option_index
+
+    # If this is an SRS review, update the review
+    if request.review_id is not None and request.quality is not None:
+        update_review(db, request.review_id, request.quality)
 
     # Update user progress
     progress = db.query(UserProgress).filter(
@@ -306,6 +357,10 @@ async def submit_vocabulary_answer(
     progress.last_activity_at = datetime.utcnow()
 
     db.commit()
+
+    # Check for achievements
+    from app.services.achievements_service import check_and_unlock_achievements
+    newly_unlocked = check_and_unlock_achievements(user.id, db)
 
     # Check if user now meets advancement criteria
     from app.services.progress_service import calculate_advancement_eligibility

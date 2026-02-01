@@ -179,6 +179,10 @@ function updateUserDisplay() {
         const displayText = `${currentUser.username} | ${currentUser.target_language || '?'} (${currentUser.level || '?'})`;
         document.getElementById('user-display').textContent = displayText;
         document.getElementById('user-info').classList.remove('hidden');
+        // Show achievements button
+        document.getElementById('achievements-toggle').classList.remove('hidden');
+        // Load achievements data
+        loadAchievements();
     }
 }
 
@@ -320,6 +324,8 @@ async function logoutUser() {
     currentGrammarQuestion = null;
     currentPlacementTest = null;
     document.getElementById('user-info').classList.add('hidden');
+    // Hide achievements button
+    document.getElementById('achievements-toggle').classList.add('hidden');
     showSection('login-section');
 }
 
@@ -663,11 +669,36 @@ function backToModules() {
 }
 
 // Vocabulary Module
+async function loadSRSStats() {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/vocabulary/review-stats`,
+            { headers: getAuthHeaders() }
+        );
+
+        if (response.ok) {
+            const stats = await response.json();
+            document.getElementById('due-count').textContent = stats.due;
+            document.getElementById('learning-count').textContent = stats.learning;
+            document.getElementById('mastered-count').textContent = stats.mastered;
+        }
+    } catch (error) {
+        console.error('Failed to load SRS stats:', error);
+        // Set defaults on error
+        document.getElementById('due-count').textContent = '0';
+        document.getElementById('learning-count').textContent = '0';
+        document.getElementById('mastered-count').textContent = '0';
+    }
+}
+
 async function startVocabulary() {
     showSection('vocabulary-section');
     document.getElementById('flashcard').innerHTML = '<div class="loading">Loading flashcard...</div>';
     document.getElementById('options-container').classList.add('hidden');
     document.getElementById('feedback').classList.add('hidden');
+
+    // Load SRS stats
+    await loadSRSStats();
 
     try {
         const response = await fetch(
@@ -846,14 +877,24 @@ async function selectOption(selectedIndex) {
     console.log('Feedback displayed, Next Word button added');
 
     try {
+        // Calculate quality rating for SRS reviews
+        const requestBody = {
+            word: currentFlashcard.word,
+            selected_option_index: selectedIndex,
+            correct_option_index: correctIndex
+        };
+
+        // If this is a review, include review_id and quality
+        if (currentFlashcard.is_review && currentFlashcard.review_id) {
+            requestBody.review_id = currentFlashcard.review_id;
+            // Quality rating: 5 = perfect, 4 = correct after hesitation, 2 = incorrect
+            requestBody.quality = isCorrect ? 5 : 2;
+        }
+
         const response = await fetch(`${API_BASE_URL}/vocabulary/answer`, {
             method: 'POST',
             headers: getAuthHeaders(),
-            body: JSON.stringify({
-                word: currentFlashcard.word,
-                selected_option_index: selectedIndex,
-                correct_option_index: correctIndex
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
@@ -865,14 +906,47 @@ async function selectOption(selectedIndex) {
         // fill feedback explanation now
         const explanationEl = feedbackDiv.querySelector('.feedback-explanation');
         if (explanationEl) {
-            explanationEl.innerHTML = result.explanation;
+            let explanation = result.explanation;
+            // Add review indicator if it was a review
+            if (currentFlashcard.is_review) {
+                explanation += '<br><small style="color: #667eea; font-weight: 600;">📖 Review Card</small>';
+            }
+            explanationEl.innerHTML = explanation;
         }
 
         console.log('Explanation loaded');
 
+        // Reload SRS stats after every flashcard (both new and review)
+        // New cards get added to SRS, so Learning count should increase
+        loadSRSStats();
+
+        // Check for newly unlocked achievements
+        checkForNewAchievements();
+
     } catch (error) {
         console.error('Error submitting answer:', error);
         showError(error.message);
+    }
+}
+
+// Helper function to check for new achievements
+async function checkForNewAchievements() {
+    try {
+        const oldData = achievementsData;
+        await loadAchievements();
+
+        // Compare to find newly unlocked
+        if (oldData && achievementsData) {
+            const oldUnlockedIds = new Set(oldData.unlocked.map(a => a.id));
+            const newlyUnlocked = achievementsData.unlocked.filter(a => !oldUnlockedIds.has(a.id));
+
+            // Show toasts for newly unlocked achievements
+            newlyUnlocked.forEach(achievement => {
+                showAchievementToast(achievement);
+            });
+        }
+    } catch (error) {
+        console.error('Error checking achievements:', error);
     }
 }
 
@@ -2145,6 +2219,183 @@ function renderLevelChart(data) {
     });
 }
 
+// ============================================
+// ACHIEVEMENTS FUNCTIONS
+// ============================================
+
+let achievementsData = null;
+
+async function loadAchievements() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/achievements/`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            console.error('Failed to load achievements:', response.status);
+            return;
+        }
+
+        achievementsData = await response.json();
+        console.log('Achievements loaded:', achievementsData);
+        console.log('Unlocked:', achievementsData.unlocked.length, 'Locked:', achievementsData.locked.length);
+        updateAchievementsBadge();
+
+    } catch (error) {
+        console.error('Error loading achievements:', error);
+    }
+}
+
+function updateAchievementsBadge() {
+    const badge = document.getElementById('achievements-new-badge');
+    if (!badge) return;
+
+    if (achievementsData && achievementsData.new_count > 0) {
+        badge.textContent = achievementsData.new_count;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+}
+
+function showAchievements() {
+    if (!achievementsData) {
+        console.log('Loading achievements...');
+        loadAchievements().then(() => {
+            if (achievementsData) {
+                displayAchievementsModal();
+            }
+        });
+    } else {
+        displayAchievementsModal();
+    }
+}
+
+function displayAchievementsModal() {
+    const modal = document.getElementById('achievements-modal');
+    modal.classList.remove('hidden');
+
+    // Update counts
+    document.getElementById('unlocked-count').textContent = achievementsData.unlocked.length;
+    document.getElementById('locked-count').textContent = achievementsData.locked.length;
+
+    // Display unlocked achievements
+    displayAchievementsList('unlocked', achievementsData.unlocked);
+    displayAchievementsList('locked', achievementsData.locked);
+
+    // Mark achievements as viewed
+    markAchievementsViewed();
+}
+
+function displayAchievementsList(type, achievements) {
+    const container = document.getElementById(`${type}-achievements`);
+    console.log(`Displaying ${type} achievements:`, achievements.length, 'items');
+
+    if (achievements.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>' +
+            (type === 'unlocked' ? 'Complete activities to unlock achievements!' : 'All achievements unlocked! 🎉') +
+            '</p></div>';
+        return;
+    }
+
+    container.innerHTML = achievements.map(ach => {
+        const tierClass = `tier-${ach.tier}`;
+        const cardClass = type === 'locked' ? 'achievement-card locked' : 'achievement-card';
+
+        let content = `
+            <div class="${cardClass}">
+                ${ach.is_new ? '<span class="achievement-new-badge">NEW</span>' : ''}
+                <span class="achievement-tier ${tierClass}">${ach.tier}</span>
+                <span class="achievement-icon">${ach.icon || '🏆'}</span>
+                <div class="achievement-name">${ach.name}</div>
+                <div class="achievement-description">${ach.description}</div>
+                <div class="achievement-xp">+${ach.xp_reward} XP</div>
+        `;
+
+        if (type === 'locked') {
+            content += `
+                <div class="achievement-progress">
+                    <div class="progress-bar-container-small">
+                        <div class="progress-bar-small" style="width: ${ach.progress}%"></div>
+                    </div>
+                    <div class="progress-text">${ach.progress}% Complete</div>
+                </div>
+            `;
+        } else if (ach.unlocked_at) {
+            const date = new Date(ach.unlocked_at).toLocaleDateString();
+            content += `<div class="achievement-unlocked-date">Unlocked on ${date}</div>`;
+        }
+
+        content += '</div>';
+        return content;
+    }).join('');
+}
+
+function switchAchievementsTab(tab) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.closest('.tab-btn').classList.add('active');
+
+    // Update tab content
+    document.getElementById('unlocked-tab').classList.toggle('hidden', tab !== 'unlocked');
+    document.getElementById('locked-tab').classList.toggle('hidden', tab !== 'locked');
+}
+
+function closeAchievementsModal() {
+    document.getElementById('achievements-modal').classList.add('hidden');
+}
+
+async function markAchievementsViewed() {
+    try {
+        await fetch(`${API_BASE_URL}/achievements/mark-viewed`, {
+            method: 'POST',
+            headers: getAuthHeaders()
+        });
+
+        // Update local data
+        if (achievementsData && achievementsData.unlocked) {
+            achievementsData.unlocked.forEach(ach => {
+                ach.is_new = false;
+            });
+            achievementsData.new_count = 0;
+            updateAchievementsBadge();
+        }
+    } catch (error) {
+        console.error('Error marking achievements as viewed:', error);
+    }
+}
+
+function showAchievementToast(achievement) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+        <div class="toast-icon">${achievement.icon || '🏆'}</div>
+        <div class="toast-content">
+            <div class="toast-title">Achievement Unlocked!</div>
+            <div class="toast-message">${achievement.name}</div>
+            <div class="toast-xp">+${achievement.xp_reward} XP</div>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        toast.style.animation = 'toastSlideIn 0.4s ease-out reverse';
+        setTimeout(() => {
+            toast.remove();
+        }, 400);
+    }, 5000);
+
+    // Reload achievements data to update badge
+    loadAchievements();
+}
+
 // Initialize app on page load (only on index.html)
 window.addEventListener('DOMContentLoaded', function() {
     // Only run initializeApp on index.html (main page)
@@ -2153,6 +2404,10 @@ window.addEventListener('DOMContentLoaded', function() {
     if (isMainPage) {
         initializeApp();
         initMascotHelper();
+        // Load achievements for badge count
+        if (authToken) {
+            setTimeout(loadAchievements, 1000);
+        }
     }
 
     // Load charts on progress page

@@ -257,6 +257,10 @@ async def send_message(
 
     db.commit()
 
+    # Check for achievements
+    from app.services.achievements_service import check_and_unlock_achievements
+    newly_unlocked = check_and_unlock_achievements(user.id, db)
+
     # Log content
     content_log = ContentLog(
         user_id=user.id,
