@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluently - AI Language Learning</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>FleuncIA - AI Language Learning</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="styles.css?v=2.6">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <!-- Floating Mascot Helper -->
     <div class="floating-mascot" id="floating-mascot">
-        <img src="mascot.png" alt="Fluently Helper" class="floating-mascot-image">
+        <img src="mascot.png" alt="FleuncIA Helper" class="floating-mascot-image">
         <div class="mascot-speech-bubble hidden" id="mascot-bubble">
             <p id="mascot-message">Hi! I'm here to help! 👋</p>
         </div>
@@ -21,11 +25,20 @@
     <div class="container">
         <!-- Header -->
         <header>
+            <button id="theme-toggle" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle dark mode">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+            <button id="achievements-toggle" class="achievements-toggle-btn hidden" onclick="showAchievements()" title="View achievements">
+                <span class="achievements-icon">🏆</span>
+                <span id="achievements-new-badge" class="achievement-new-badge hidden">0</span>
+            </button>
             <div class="logo-container">
                 <div class="mascot-icon">
-                    <img src="logo.png" alt="Fluently Logo" class="mascot-image">
+                    <img src="logo.png" alt="FleuncIA Logo" class="mascot-image">
                 </div>
-                <h1>Fluently</h1>
+                <h1>FleuncIA</h1>
             </div>
             <p class="subtitle">Master Languages with AI-Powered Guidance</p>
         </header>
@@ -91,7 +104,7 @@
         <!-- Language Selection Section -->
         <div id="language-selection-section" class="section hidden">
             <div class="section-mascot">
-                <img src="mascot.png" alt="Fluently Mascot" class="section-mascot-image">
+                <img src="mascot.png" alt="FleuncIA Mascot" class="section-mascot-image">
             </div>
             <h2>Choose Your Language</h2>
             <p class="subtitle">Which language would you like to learn?</p>
@@ -232,6 +245,23 @@
         <!-- Vocabulary Flashcard Section -->
         <div id="vocabulary-section" class="section hidden">
             <h2>📚 Vocabulary Practice</h2>
+
+            <!-- SRS Stats -->
+            <div id="srs-stats" class="srs-stats">
+                <div class="stat-card due">
+                    <div class="stat-number" id="due-count">-</div>
+                    <div class="stat-label">Due Now</div>
+                </div>
+                <div class="stat-card learning">
+                    <div class="stat-number" id="learning-count">-</div>
+                    <div class="stat-label">Learning</div>
+                </div>
+                <div class="stat-card mastered">
+                    <div class="stat-number" id="mastered-count">-</div>
+                    <div class="stat-label">Mastered</div>
+                </div>
+            </div>
+
             <div id="flashcard" class="flashcard">
                 <div class="loading">Loading...</div>
             </div>
@@ -243,12 +273,56 @@
         <!-- Conversation Section -->
         <div id="conversation-section" class="section hidden">
             <h2>💬 Conversation Practice</h2>
-            <div id="chat-container" class="chat-container">
-                <div class="loading">Starting conversation...</div>
+            <div id="topic-selector" class="topic-selector hidden">
+                <h3>Choose a Conversation Topic</h3>
+                <p class="subtitle-text">Select a topic to practice, or let the AI choose randomly</p>
+                <div class="topics-grid">
+                    <div class="topic-card" onclick="startConversationWithTopic('random')">
+                        <span class="topic-icon">🎲</span>
+                        <h4>Random Topic</h4>
+                    </div>
+                    <div class="topic-card" onclick="startConversationWithTopic('travel')">
+                        <span class="topic-icon">✈️</span>
+                        <h4>Travel</h4>
+                    </div>
+                    <div class="topic-card" onclick="startConversationWithTopic('food')">
+                        <span class="topic-icon">🍽️</span>
+                        <h4>Food & Dining</h4>
+                    </div>
+                    <div class="topic-card" onclick="startConversationWithTopic('hobbies')">
+                        <span class="topic-icon">🎨</span>
+                        <h4>Hobbies</h4>
+                    </div>
+                    <div class="topic-card" onclick="startConversationWithTopic('work')">
+                        <span class="topic-icon">💼</span>
+                        <h4>Work & Career</h4>
+                    </div>
+                    <div class="topic-card" onclick="startConversationWithTopic('culture')">
+                        <span class="topic-icon">🎭</span>
+                        <h4>Culture</h4>
+                    </div>
+                    <div class="topic-card" onclick="startConversationWithTopic('daily_life')">
+                        <span class="topic-icon">🏠</span>
+                        <h4>Daily Life</h4>
+                    </div>
+                    <div class="topic-card" onclick="startConversationWithTopic('education')">
+                        <span class="topic-icon">📚</span>
+                        <h4>Education</h4>
+                    </div>
+                </div>
             </div>
-            <div class="chat-input-container">
-                <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleChatKeyPress(event)">
-                <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+            <div id="chat-area" class="hidden">
+                <div id="current-topic-display" class="current-topic hidden">
+                    <span id="topic-name"></span>
+                    <button onclick="changeTopic()" class="btn-link">Change Topic</button>
+                </div>
+                <div id="chat-container" class="chat-container">
+                    <div class="loading">Starting conversation...</div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Type your message..." onkeypress="handleChatKeyPress(event)">
+                    <button onclick="sendMessage()" class="btn btn-primary">Send</button>
+                </div>
             </div>
             <button onclick="backToModules()" class="btn btn-secondary">Back to Modules</button>
         </div>
@@ -267,13 +341,26 @@
         <!-- Writing Section -->
         <div id="writing-section" class="section hidden">
             <h2>✍️ Writing Practice</h2>
-            <div class="form-group">
-                <label for="writing-text">Write a sentence in <span id="writing-language">your target language</span>:</label>
-                <textarea id="writing-text" rows="4" placeholder="Type your sentence here..."></textarea>
+            <div id="writing-prompt-selector" class="prompt-selector hidden">
+                <h3>Choose a Writing Topic</h3>
+                <p class="subtitle-text">Select a prompt that interests you, or write freely about any topic</p>
+                <div id="prompts-grid" class="prompts-grid"></div>
+                <button onclick="writeFreeForm()" class="btn btn-secondary" style="margin-top: 20px;">Write Without a Prompt</button>
             </div>
-            <button onclick="submitWriting()" class="btn btn-primary" id="submit-writing-btn">Get Feedback</button>
-            <div id="writing-loading" class="loading hidden">Processing your feedback</div>
-            <div id="writing-feedback" class="writing-feedback hidden"></div>
+            <div id="writing-input-area" class="hidden">
+                <div id="selected-prompt-display" class="selected-prompt hidden">
+                    <h4 id="prompt-title"></h4>
+                    <p id="prompt-text"></p>
+                    <button onclick="showPromptSelector()" class="btn btn-link">Choose Different Topic</button>
+                </div>
+                <div class="form-group">
+                    <label for="writing-text">Write a sentence in <span id="writing-language">your target language</span>:</label>
+                    <textarea id="writing-text" rows="4" placeholder="Type your sentence here..."></textarea>
+                </div>
+                <button onclick="submitWriting()" class="btn btn-primary" id="submit-writing-btn">Get Feedback</button>
+                <div id="writing-loading" class="loading hidden">Processing your feedback</div>
+                <div id="writing-feedback" class="writing-feedback hidden"></div>
+            </div>
             <button onclick="backToModules()" class="btn btn-secondary">Back to Modules</button>
         </div>
 
@@ -335,6 +422,47 @@
 
     </div>
 
-    <script src="app.js?v=5"></script>
+    <!-- Achievements Modal -->
+    <div id="achievements-modal" class="modal hidden">
+        <div class="modal-content achievements-modal-content">
+            <div class="modal-header">
+                <h2>🏆 Your Achievements</h2>
+                <button class="modal-close" onclick="closeAchievementsModal()">&times;</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="achievements-tabs">
+                <button class="tab-btn active" onclick="switchAchievementsTab('unlocked')">
+                    Unlocked <span id="unlocked-count" class="tab-count">0</span>
+                </button>
+                <button class="tab-btn" onclick="switchAchievementsTab('locked')">
+                    In Progress <span id="locked-count" class="tab-count">0</span>
+                </button>
+            </div>
+
+            <!-- Unlocked Tab -->
+            <div id="unlocked-tab" class="tab-content active">
+                <div id="unlocked-achievements" class="achievements-grid">
+                    <div class="empty-state">
+                        <p>Complete activities to unlock achievements!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Locked Tab -->
+            <div id="locked-tab" class="tab-content hidden">
+                <div id="locked-achievements" class="achievements-grid">
+                    <div class="empty-state">
+                        <p>All achievements unlocked! 🎉</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js?v=19"></script>
 </body>
 </html>

@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     # CEFR Levels
     CEFR_LEVELS: list = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
+    # Redis Cache Configuration
+    REDIS_URL: str = "redis://localhost:6379/0"
+    CACHE_ENABLED: bool = True
+    CACHE_TTL_HOURS: int = 24
+    VALIDATION_CACHE_TTL_MINUTES: int = 60
+    RECENT_WORDS_CACHE_TTL_MINUTES: int = 5
+
     # CORS
     BACKEND_CORS_ORIGINS: Union[list, str] = ["*"]
 

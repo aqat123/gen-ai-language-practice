@@ -8,7 +8,8 @@ from app.api.v1.endpoints import (
     grammar,
     writing,
     phonetics,
-    progress
+    progress,
+    achievements
 )
 
 api_router = APIRouter()
@@ -23,3 +24,4 @@ api_router.include_router(grammar.router, prefix="/grammar", tags=["grammar"])
 api_router.include_router(writing.router, prefix="/writing", tags=["writing"])
 api_router.include_router(phonetics.router, prefix="/phonetics", tags=["phonetics"])
 api_router.include_router(progress.router, prefix="/progress", tags=["progress"])
+api_router.include_router(achievements.router, prefix="/achievements", tags=["achievements"])
