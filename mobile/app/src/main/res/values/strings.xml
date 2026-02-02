@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FluencIA</string>
+    <string name="title_vocabulary">Vocabulary</string>
+    <string name="title_grammar">Grammar</string>
+    <string name="title_writing">Writing</string>
+    <string name="title_phonetics">Pronunciation</string>
+    <string name="title_conversation">Conversation</string>
+    <string name="title_progress">Progress</string>
+    <string name="title_achievements">Achievements</string>
+    
+    <!-- Common strings -->
+    <string name="loading">Loading…</string>
+    <string name="error">Error</string>
+    <string name="retry">Retry</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+    <string name="submit">Submit</string>
+    <string name="cancel">Cancel</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="logout">Logout</string>
+    
+    <!-- Authentication -->
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="full_name">Full Name</string>
+    <string name="create_account">Create Account</string>
+    <string name="welcome_back">Welcome Back!</string>
+    
+    <!-- Levels -->
+    <string name="level_a1">Beginner</string>
+    <string name="level_a2">Elementary</string>
+    <string name="level_b1">Intermediate</string>
+    <string name="level_b2">Upper Intermediate</string>
+    <string name="level_c1">Advanced</string>
+    <string name="level_c2">Proficient</string>
+    
+    <!-- Modules -->
+    <string name="vocabulary_description">Learn new words with flashcards</string>
+    <string name="grammar_description">Practice grammar rules</string>
+    <string name="writing_description">Get feedback on your writing</string>
+    <string name="phonetics_description">Practice speaking with AI feedback</string>
+    <string name="conversation_description">Chat with AI tutor</string>
+</resources>

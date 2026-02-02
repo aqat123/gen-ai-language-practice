@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Graduation cap icon representing education/learning -->
+    <group android:translateX="27" android:translateY="27">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M27,8L0,20L27,32L54,20L27,8Z"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M6,24L6,38L27,48L48,38L48,24L27,34L6,24Z"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M48,22L48,35L51,35L51,22L48,22Z"/>
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M49.5,35A2.5,2.5 0,1 1,49.5 40A2.5,2.5 0,1 1,49.5 35Z"/>
+    </group>
+</vector>

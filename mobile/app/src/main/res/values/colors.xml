@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary brand colors -->
+    <color name="primary">#667eea</color>
+    <color name="primary_dark">#4a5fc1</color>
+    <color name="secondary">#764ba2</color>
+    <color name="accent">#f093fb</color>
+    
+    <!-- Surface colors -->
+    <color name="surface">#FFFFFF</color>
+    <color name="background">#F8F9FA</color>
+    
+    <!-- Functional colors -->
+    <color name="success">#10b981</color>
+    <color name="error">#ef4444</color>
+    <color name="warning">#f59e0b</color>
+    <color name="info">#4facfe</color>
+    
+    <!-- Module colors -->
+    <color name="vocabulary">#667eea</color>
+    <color name="grammar">#f093fb</color>
+    <color name="writing">#4facfe</color>
+    <color name="phonetics">#43e97b</color>
+    <color name="conversation">#fa709a</color>
+    
+    <!-- Text colors -->
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_secondary">#49454F</color>
+    <color name="text_tertiary">#79747E</color>
+    
+    <!-- Level colors -->
+    <color name="level_a1">#4CAF50</color>
+    <color name="level_a2">#8BC34A</color>
+    <color name="level_b1">#FFEB3B</color>
+    <color name="level_b2">#FF9800</color>
+    <color name="level_c1">#FF5722</color>
+    <color name="level_c2">#9C27B0</color>
+</resources>
