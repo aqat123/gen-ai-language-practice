@@ -40,7 +40,12 @@ class STTClient:
                     target_phrase=target_phrase
                 )
             if self.provider == "groq":
-                raise STTError("Groq does not support speech-to-text.")
+                return await self._analyze_groq(
+                    audio_bytes=audio_bytes,
+                    mime_type=mime_type,
+                    target_language=target_language,
+                    target_phrase=target_phrase
+                )
 
             return await self._analyze_gemini(
                 audio_bytes=audio_bytes,
@@ -55,6 +60,20 @@ class STTClient:
             raise STTError("AI returned invalid JSON")
         except Exception as e:
             raise STTError(f"Error during speech transcription: {str(e)}")
+
+    async def _analyze_groq(
+            self,
+            audio_bytes: bytes,
+            mime_type: str,
+            target_language: str,
+            target_phrase: str
+    ) -> Dict[str, Any]:
+        return await self._analyze_openai_compatible(
+            audio_bytes=audio_bytes,
+            mime_type=mime_type,
+            target_language=target_language,
+            target_phrase=target_phrase
+        )
 
     async def _analyze_gemini(
             self,
