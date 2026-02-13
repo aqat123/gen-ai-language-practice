@@ -2883,3 +2883,60 @@ header h1 {
     background: rgba(102, 126, 234, 0.3);
     border: 2px solid #667eea;
 }
+
+/* Level selection dark-mode text fixes */
+[data-theme="dark"] #level-selection-section .divider div {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] #level-selection-section .divider .subtitle {
+    color: var(--text-secondary);
+}
+
+/* Progress charts dark-mode text (canvas charts use JS; this handles labels/headings) */
+[data-theme="dark"] .charts-section h2,
+[data-theme="dark"] .chart-card h3 {
+    color: var(--text-primary);
+}
+
+/* LLM config button + modal layout (appearance only; no text color changes) */
+#login-section {
+    position: relative;
+}
+
+.llm-config-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    border: none;
+    background: var(--card-bg);
+    font-size: 1.2rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 6px 18px var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.llm-config-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px var(--shadow-md);
+}
+
+.llm-config-content {
+    max-width: 520px;
+}
+
+.llm-config-body {
+    padding: 24px 32px 32px;
+}
+
+.llm-config-status {
+    margin-top: 12px;
+    font-size: 0.95rem;
+}
+

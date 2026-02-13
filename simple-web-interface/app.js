@@ -2,6 +2,12 @@
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 //const API_BASE_URL = 'https://language-app-469l.onrender.com/api/v1';
 
+const LLM_PROVIDERS = [
+    { value: 'gpt', label: 'OpenAI (GPT)' },
+    { value: 'gemini', label: 'Google Gemini' },
+    { value: 'groq', label: 'Groq' }
+];
+
 // Global State
 let authToken = null;
 let currentUser = null;
@@ -80,6 +86,226 @@ function showSection(sectionId) {
 
 function showError(message) {
     alert('Error: ' + message);
+}
+
+function setLlmConfigStatus(message, state) {
+    const status = document.getElementById('llm-config-status');
+    if (!status) return;
+    status.textContent = message;
+    status.classList.remove('error', 'success');
+    if (state) {
+        status.classList.add(state);
+    }
+}
+
+function initializeLlmConfig() {
+    const providerSelect = document.getElementById('llm-provider');
+    const imageProviderSelect = document.getElementById('llm-image-provider');
+    const sttProviderSelect = document.getElementById('stt-provider');
+
+    [providerSelect, imageProviderSelect, sttProviderSelect].forEach(select => {
+        if (!select) return;
+        select.innerHTML = '';
+        LLM_PROVIDERS.forEach(provider => {
+            const option = document.createElement('option');
+            option.value = provider.value;
+            option.textContent = provider.label;
+            select.appendChild(option);
+        });
+    });
+}
+
+function openLlmConfigModal() {
+    const modal = document.getElementById('llm-config-modal');
+    if (!modal) return;
+
+    initializeLlmConfig();
+    resetLlmConfigModal();
+    modal.classList.remove('hidden');
+}
+
+function closeLlmConfigModal() {
+    const modal = document.getElementById('llm-config-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function resetLlmConfigModal() {
+    const apiKeyInput = document.getElementById('llm-api-key');
+    const modelsSection = document.getElementById('llm-models-section');
+    const modelSelect = document.getElementById('llm-model');
+    const applyButton = document.getElementById('llm-apply-btn');
+    const imageKeyInput = document.getElementById('llm-image-api-key');
+    const imageModelsSection = document.getElementById('llm-image-models-section');
+    const imageModelSelect = document.getElementById('llm-image-model');
+    const sttKeyInput = document.getElementById('stt-api-key');
+    const sttModelsSection = document.getElementById('stt-models-section');
+    const sttModelSelect = document.getElementById('stt-model');
+
+    if (apiKeyInput) {
+        apiKeyInput.value = '';
+    }
+    if (modelsSection) {
+        modelsSection.classList.add('hidden');
+    }
+    if (applyButton) {
+        applyButton.classList.add('hidden');
+    }
+    if (modelSelect) {
+        modelSelect.innerHTML = '';
+    }
+    if (imageKeyInput) {
+        imageKeyInput.value = '';
+    }
+    if (imageModelsSection) {
+        imageModelsSection.classList.add('hidden');
+    }
+    if (imageModelSelect) {
+        imageModelSelect.innerHTML = '';
+    }
+    if (sttKeyInput) {
+        sttKeyInput.value = '';
+    }
+    if (sttModelsSection) {
+        sttModelsSection.classList.add('hidden');
+    }
+    if (sttModelSelect) {
+        sttModelSelect.innerHTML = '';
+    }
+    setLlmConfigStatus('', null);
+}
+
+async function fetchModelsForContext(context) {
+    const provider = document.getElementById(context.providerId)?.value;
+    const apiKey = document.getElementById(context.apiKeyId)?.value.trim();
+
+    if (!provider || !apiKey) {
+        setLlmConfigStatus('Please choose a provider and enter your API key.', 'error');
+        return;
+    }
+
+    setLlmConfigStatus('Fetching models...', null);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/llm-config/models`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ provider, api_key: apiKey })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to fetch models.');
+        }
+
+        const data = await response.json();
+        const models = data.models || [];
+        if (!models.length) {
+            setLlmConfigStatus('No models found for this key.', 'error');
+            return;
+        }
+
+        const modelSelect = document.getElementById(context.modelSelectId);
+        const modelsSection = document.getElementById(context.modelsSectionId);
+        const applyButton = document.getElementById('llm-apply-btn');
+
+        modelSelect.innerHTML = '';
+        models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            modelSelect.appendChild(option);
+        });
+
+        modelsSection.classList.remove('hidden');
+        if (applyButton) {
+            applyButton.classList.remove('hidden');
+        }
+        setLlmConfigStatus('Models loaded. Pick one to continue.', 'success');
+    } catch (error) {
+        console.error('LLM model fetch error:', error);
+        setLlmConfigStatus(error.message || 'Unable to fetch models.', 'error');
+    }
+}
+
+async function fetchLlmModels() {
+    await fetchModelsForContext({
+        providerId: 'llm-provider',
+        apiKeyId: 'llm-api-key',
+        modelsSectionId: 'llm-models-section',
+        modelSelectId: 'llm-model'
+    });
+}
+
+async function fetchImageModels() {
+    await fetchModelsForContext({
+        providerId: 'llm-image-provider',
+        apiKeyId: 'llm-image-api-key',
+        modelsSectionId: 'llm-image-models-section',
+        modelSelectId: 'llm-image-model'
+    });
+}
+
+async function fetchSttModels() {
+    await fetchModelsForContext({
+        providerId: 'stt-provider',
+        apiKeyId: 'stt-api-key',
+        modelsSectionId: 'stt-models-section',
+        modelSelectId: 'stt-model'
+    });
+}
+
+async function applyLlmConfig() {
+    const provider = document.getElementById('llm-provider')?.value;
+    const apiKey = document.getElementById('llm-api-key')?.value.trim();
+    const model = document.getElementById('llm-model')?.value;
+    const imageProvider = document.getElementById('llm-image-provider')?.value;
+    const imageApiKey = document.getElementById('llm-image-api-key')?.value.trim();
+    const imageModel = document.getElementById('llm-image-model')?.value;
+    const sttProvider = document.getElementById('stt-provider')?.value;
+    const sttApiKey = document.getElementById('stt-api-key')?.value.trim();
+    const sttModel = document.getElementById('stt-model')?.value;
+
+    if (!provider || !apiKey || !model) {
+        setLlmConfigStatus('Choose a provider, key, and model before applying.', 'error');
+        return;
+    }
+
+    setLlmConfigStatus('Applying configuration...', null);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/llm-config/apply`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                provider,
+                api_key: apiKey,
+                model,
+                image_provider: imageProvider,
+                image_api_key: imageApiKey,
+                image_model: imageModel,
+                stt_provider: sttProvider,
+                stt_api_key: sttApiKey,
+                stt_model: sttModel
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to apply configuration.');
+        }
+
+        setLlmConfigStatus('Configuration updated.', 'success');
+        setTimeout(closeLlmConfigModal, 800);
+    } catch (error) {
+        console.error('LLM config apply error:', error);
+        setLlmConfigStatus(error.message || 'Unable to apply configuration.', 'error');
+    }
 }
 
 // Authentication Functions
@@ -2037,6 +2263,11 @@ async function loadProgressCharts() {
     }
 }
 
+function getChartTextColor() {
+    const style = getComputedStyle(document.documentElement);
+    return style.getPropertyValue('--text-primary').trim() || '#2d3748';
+}
+
 function renderActivityChart(data) {
     const ctx = document.getElementById('activityChart');
     if (!ctx) return;
@@ -2046,6 +2277,7 @@ function renderActivityChart(data) {
         activityChart.destroy();
     }
 
+    const textColor = getChartTextColor();
     const chartData = {
         labels: data.dates.map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
         datasets: [
@@ -2101,7 +2333,10 @@ function renderActivityChart(data) {
             plugins: {
                 legend: {
                     display: true,
-                    position: 'top'
+                    position: 'top',
+                    labels: {
+                        color: textColor
+                    }
                 },
                 tooltip: {
                     mode: 'index',
@@ -2109,10 +2344,16 @@ function renderActivityChart(data) {
                 }
             },
             scales: {
+                x: {
+                    ticks: {
+                        color: textColor
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        stepSize: 1
+                        stepSize: 1,
+                        color: textColor
                     }
                 }
             }
@@ -2129,9 +2370,12 @@ function renderScoresChart(data) {
         scoresChart.destroy();
     }
 
+    const textColor = getChartTextColor();
     if (!data.modules || data.modules.length === 0) {
-        ctx.getContext('2d').font = '16px Inter';
-        ctx.getContext('2d').fillText('No data yet - complete some activities!', 10, 50);
+        const emptyCtx = ctx.getContext('2d');
+        emptyCtx.font = '16px Inter';
+        emptyCtx.fillStyle = textColor;
+        emptyCtx.fillText('No data yet - complete some activities!', 10, 50);
         return;
     }
 
@@ -2170,13 +2414,19 @@ function renderScoresChart(data) {
                 }
             },
             scales: {
+                x: {
+                    ticks: {
+                        color: textColor
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     max: 100,
                     ticks: {
                         callback: function(value) {
                             return value + '%';
-                        }
+                        },
+                        color: textColor
                     }
                 }
             }
@@ -2193,9 +2443,12 @@ function renderLevelChart(data) {
         levelChart.destroy();
     }
 
+    const textColor = getChartTextColor();
     if (!data.levels || data.levels.length === 0) {
-        ctx.getContext('2d').font = '16px Inter';
-        ctx.getContext('2d').fillText('No level history yet', 10, 50);
+        const emptyCtx = ctx.getContext('2d');
+        emptyCtx.font = '16px Inter';
+        emptyCtx.fillStyle = textColor;
+        emptyCtx.fillText('No level history yet', 10, 50);
         return;
     }
 
@@ -2227,13 +2480,19 @@ function renderLevelChart(data) {
                 }
             },
             scales: {
+                x: {
+                    ticks: {
+                        color: textColor
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     max: 100,
                     ticks: {
                         callback: function(value) {
                             return value + '%';
-                        }
+                        },
+                        color: textColor
                     }
                 }
             }
@@ -2426,6 +2685,7 @@ window.addEventListener('DOMContentLoaded', function() {
     if (isMainPage) {
         initializeApp();
         initMascotHelper();
+        initializeLlmConfig();
         // Load achievements for badge count
         if (authToken) {
             setTimeout(loadAchievements, 1000);

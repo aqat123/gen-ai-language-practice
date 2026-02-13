@@ -7,7 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="stylesheet" href="styles.css?v=2.6">
+    <link rel="stylesheet" href="styles.css?v=2.8">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -45,6 +45,9 @@
 
         <!-- Login Section -->
         <div id="login-section" class="section">
+            <button id="llm-config-btn" class="llm-config-btn" onclick="openLlmConfigModal()" title="Configure API key">
+                🔑
+            </button>
             <h2>Welcome Back</h2>
             <div class="form-group">
                 <label for="login-username">Username:</label>
@@ -227,8 +230,12 @@
                     <h3>Pronunciation</h3>
                     <p>Practice speaking and get AI feedback.</p>
                 </div>
+                <div class="module-card" onclick="window.location.href='progress.html'">
+                    <div class="module-icon">📊</div>
+                    <h3>My Progress</h3>
+                    <p>Track achievements and growth</p>
+                </div>
             </div>
-            <button onclick="window.location.href='progress.html'" class="btn btn-primary">📊 My Progress</button>
 
             <!-- Cheat Code Section (Hidden by default) -->
             <div style="margin-top: 30px; text-align: center;">
@@ -460,9 +467,62 @@
         </div>
     </div>
 
+    <!-- LLM Config Modal -->
+    <div id="llm-config-modal" class="modal hidden">
+        <div class="modal-content llm-config-content">
+            <div class="modal-header">
+                <h2>🔑 API Key Setup</h2>
+                <button class="modal-close" onclick="closeLlmConfigModal()">&times;</button>
+            </div>
+            <div class="llm-config-body">
+                <div class="form-group">
+                    <label for="llm-provider">Provider</label>
+                    <select id="llm-provider" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label for="llm-api-key">API Key</label>
+                    <input type="password" id="llm-api-key" placeholder="Paste your API key">
+                </div>
+                <button id="llm-fetch-models-btn" class="btn btn-primary" onclick="fetchLlmModels()">Fetch Models</button>
+                <div id="llm-config-status" class="llm-config-status"></div>
+                <div id="llm-models-section" class="form-group hidden">
+                    <label for="llm-model">Model</label>
+                    <select id="llm-model" class="form-control"></select>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="llm-image-provider">Image Provider</label>
+                    <select id="llm-image-provider" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label for="llm-image-api-key">Image API Key</label>
+                    <input type="password" id="llm-image-api-key" placeholder="Paste your image API key">
+                </div>
+                <button id="llm-image-fetch-models-btn" class="btn btn-primary" onclick="fetchImageModels()">Fetch Image Models</button>
+                <div id="llm-image-models-section" class="form-group hidden">
+                    <label for="llm-image-model">Image Model</label>
+                    <select id="llm-image-model" class="form-control"></select>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="stt-provider">STT Provider</label>
+                    <select id="stt-provider" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label for="stt-api-key">STT API Key</label>
+                    <input type="password" id="stt-api-key" placeholder="Paste your STT API key">
+                </div>
+                <button id="stt-fetch-models-btn" class="btn btn-primary" onclick="fetchSttModels()">Fetch STT Models</button>
+                <div id="stt-models-section" class="form-group hidden">
+                    <label for="stt-model">STT Model</label>
+                    <select id="stt-model" class="form-control"></select>
+                </div>
+                <button id="llm-apply-btn" class="btn btn-secondary hidden" onclick="applyLlmConfig()">Apply</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=21"></script>
 </body>
 </html>

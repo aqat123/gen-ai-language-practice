@@ -11,11 +11,13 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://user:password@localhost:5432/language_app"
 
     # LLM API Configuration
+    LLM_PROVIDER: str = "gemini"
     LLM_API_KEY: str
     LLM_API_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta"
     LLM_MODEL: str = "gemini-2.5-flash"
 
     # Image Generation API Configuration (Legacy - not used with Vertex AI)
+    LLM_IMAGE_PROVIDER: str = "gemini"
     LLM_IMAGE_API_KEY: str = ""
     LLM_IMAGE_API_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta"
     LLM_IMAGE_MODEL: str = "imagen-4.0-generate-001"
@@ -27,6 +29,7 @@ class Settings(BaseSettings):
     USE_VERTEX_AI: bool = False  # Set to True to enable Vertex AI images
 
     # Speech-to-Text API Configuration
+    STT_PROVIDER: str = "gemini"
     STT_API_KEY: str
     STT_API_BASE_URL: str = "https://generativelanguage.googleapis.com/v1beta"
     STT_MODEL: str = "gemini-2.5-flash"
