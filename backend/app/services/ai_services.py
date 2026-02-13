@@ -12,10 +12,11 @@ class LLMError(Exception):
 class LLMClient:
     """Client for interacting with LLM API (Gemini)."""
 
-    def __init__(self, api_key: str, base_url: str, model: str = "gemini-1.5-flash"):
+    def __init__(self, api_key: str, base_url: str, model: str = "gemini-1.5-flash", provider: str = "gemini"):
         self.api_key = api_key
-        self.base_url = base_url
+        self.base_url = base_url.rstrip("/")
         self.model = model
+        self.provider = provider.lower()
         self.client = httpx.AsyncClient(timeout=30.0)
 
     async def generate(
@@ -42,45 +43,97 @@ class LLMClient:
             LLMError: If the API call fails
         """
         try:
-            # Combine system and user prompts for Gemini API
-            combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+            if self.provider in {"openai", "gpt", "groq"}:
+                return await self._generate_openai_compatible(
+                    system_prompt=system_prompt,
+                    user_prompt=user_prompt,
+                    temperature=temperature,
+                    max_tokens=max_tokens
+                )
 
-            # Gemini API endpoint
-            url = f"{self.base_url}/models/{self.model}:generateContent?key={self.api_key}"
-
-            payload = {
-                "contents": [
-                    {
-                        "parts": [
-                            {"text": combined_prompt}
-                        ]
-                    }
-                ],
-                "generationConfig": {
-                    "temperature": temperature,
-                    "maxOutputTokens": max_tokens,
-                }
-            }
-
-            response = await self.client.post(url, json=payload)
-            response.raise_for_status()
-
-            data = response.json()
-
-            # Extract text from Gemini response
-            if "candidates" in data and len(data["candidates"]) > 0:
-                candidate = data["candidates"][0]
-                if "content" in candidate and "parts" in candidate["content"]:
-                    parts = candidate["content"]["parts"]
-                    if len(parts) > 0 and "text" in parts[0]:
-                        return parts[0]["text"]
-
-            raise LLMError("Unexpected response format from LLM API")
+            # Default to Gemini API
+            return await self._generate_gemini(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
 
         except httpx.HTTPError as e:
             raise LLMError(f"HTTP error during LLM API call: {str(e)}")
         except Exception as e:
             raise LLMError(f"Error during LLM generation: {str(e)}")
+
+    async def _generate_gemini(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        max_tokens: int
+    ) -> str:
+        combined_prompt = f"{system_prompt}\n\n{user_prompt}"
+        url = f"{self.base_url}/models/{self.model}:generateContent?key={self.api_key}"
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": combined_prompt}
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
+            }
+        }
+
+        response = await self.client.post(url, json=payload)
+        response.raise_for_status()
+        data = response.json()
+
+        if "candidates" in data and len(data["candidates"]) > 0:
+            candidate = data["candidates"][0]
+            if "content" in candidate and "parts" in candidate["content"]:
+                parts = candidate["content"]["parts"]
+                if len(parts) > 0 and "text" in parts[0]:
+                    return parts[0]["text"]
+
+        raise LLMError("Unexpected response format from Gemini API")
+
+    async def _generate_openai_compatible(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        temperature: float,
+        max_tokens: int
+    ) -> str:
+        url = f"{self.base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": temperature,
+            "max_tokens": max_tokens
+        }
+
+        response = await self.client.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        choices = data.get("choices", [])
+        if choices and "message" in choices[0]:
+            return choices[0]["message"].get("content", "")
+
+        raise LLMError("Unexpected response format from OpenAI-compatible API")
 
     async def close(self):
         """Close the HTTP client."""
@@ -307,6 +360,12 @@ Respond ONLY with valid JSON in this exact format:
 _llm_client: Optional[LLMClient] = None
 
 
+def reset_llm_client() -> None:
+    """Reset the global LLM client instance after config changes."""
+    global _llm_client
+    _llm_client = None
+
+
 def get_llm_client() -> LLMClient:
     """Get or create the global LLM client instance."""
     global _llm_client
@@ -314,7 +373,8 @@ def get_llm_client() -> LLMClient:
         _llm_client = LLMClient(
             api_key=settings.LLM_API_KEY,
             base_url=settings.LLM_API_BASE_URL,
-            model=settings.LLM_MODEL
+            model=settings.LLM_MODEL,
+            provider=settings.LLM_PROVIDER
         )
     return _llm_client
 
